@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>LCL GDI: Settings</title>
+    <style type="text/css">
+        html,
+        body,
+        h1,
+        form,
+        fieldset,
+        legend,
+        ol,
+        li {
+            margin: 0;
+            padding: 0% 0% 0% 1%;
+            font-family: Century Gothic, sans-serif;
+        }
+
+        body {
+            background-color: #111111;
+            font-size: 100% font-family: Century Gothic, sans-serif;
+        }
+
+        p {
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-size: 2em;
+            display: block;
+            width: 100%;
+            vertical-align: center;
+            text-align: center;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .myButton {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 50px;
+            -webkit-border-radius: 50px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 5em;
+            text-decoration: none;
+            line-height: 1.5;
+            display: block;
+            min-width: 100%;
+            vertical-align: center;
+            text-align: center;
+            padding: 0px;
+        }
+
+        .myButton:active {
+            -ms-transform: scale(0.9);
+            /* IE 9 */
+            -webkit-transform: scale(0.9);
+            /* Safari */
+        }
+
+        label {
+            color: white;
+            display: block;
+            width: 45%;
+            float: left;
+        }
+
+        table.buttons {
+            color: white;
+            text-align: center;
+            width: 80%;
+            margin-left: 10%;
+            margin-right: 10%;
+            border: none;
+        }
+
+        table.buttons td {
+            //border: 1px solid red;
+            text-align: center;
+            /* center checkbox horizontally */
+            vertical-align: middle;
+            /* center checkbox vertically */
+        }
+
+        table thead th {
+            background-color: lightSlateGrey;
+            color: black;
+            font-size: 80px;
+            font-weight: bold;
+            border: 1px solid black;
+        }
+
+        table thead {
+            border: 1px solid lightSlateGrey;
+        }
+
+        input[type=radio] {
+            display: none;
+        }
+
+        input[type=checkbox] {
+            display: none;
+        }
+
+        input[type=radio]+label.btn {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 10px 5px;
+            -webkit-border-radius: 10px 15px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 4em;
+            padding: 0px;
+            line-height: 1.3333333;
+        }
+
+        input[type=radio]:checked+label.btn {
+            background-color: lightSlateGrey;
+        }
+
+        form {
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            padding: 0px 5px 0px 5px;
+            width: 79%;
+            margin-left: 10%;
+            margin-right: 10%;
+        }
+
+        form fieldset {
+            border: none;
+            margin-bottom: 10px;
+            padding: 0px 0px 0px 5px;
+        }
+
+        form legend {
+            color: white;
+            font-size: 4em;
+            font-weight: bold;
+            font-family: Century Gothic, sans-serif;
+        }
+
+        form li {
+            background: #111111;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 2px;
+            -moz-border-radius: 15px;
+            -webkit-border-radius: 15px;
+            border-radius: 15px;
+            line-height: 30px;
+            list-style: none;
+            padding: 5px 5px;
+            margin-bottom: 10px;
+        }
+
+        form ol ol li {
+            background: none;
+            border: none;
+            float: left;
+        }
+
+        form label {
+            float: left;
+            font-size: 3em;
+            // width: 45%;
+            padding: 25px 0px 0px 0px;
+        }
+
+        form tr {
+            //float: left;
+        }
+
+        form fieldset fieldset label {
+            //background:none no-repeat left 50%;
+            //width: auto;
+        }
+
+        form input:not([type=radio]) {
+            background: lightslategrey;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -khtml-border-radius: 5px;
+            border-radius: 5px;
+            outline: none;
+            padding: 10px 5px;
+            width: 50%;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 1px;
+            font-size: 3em;
+        }
+
+        form textarea {
+            background: lightslategrey;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -khtml-border-radius: 5px;
+            border-radius: 5px;
+            outline: none;
+            padding: 0px 5px;
+            width: 50%;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 1px;
+            font-size: 3em;
+        }
+    </style>
+</head>
+
+<body>
+    <p><span style="font-size:4em;">GDI SETTINGS</span></p>
+    <p id="pageStatus">No Current Status</p>
+    <form id=gdiSettings>
+        <fieldset>
+            <legend>HOST</legend>
+            <ol>
+                <li>
+                    <label for=localName>LOCAL NAME:</label>
+                    <!-- <input id="localName" name="localName" type="text" value=$localName$> -->
+                    <input id="localName" name="localName" type="text">
+                    <!-- <input id="localName" name="localName" type="text" visible="false"> -->
+                </li>
+            </ol>
+        </fieldset>
+    </form>
+    <br>
+    <form id=tempSettings>
+        <fieldset>
+            <legend>TEMPERATURE</legend>
+            <table class="buttons">
+                <tbody>
+                    <tr>
+                        <td>
+                            <input type="radio" id="radio-btn-1" name="TempChoice" value="C" $Cchecked$>
+                            <label for="radio-btn-1" class="btn" style="width:80%"><sup>o</sup>C</label>
+                        </td>
+                        <td width="30%"></td>
+                        <td>
+                            <input type="radio" id="radio-btn-2" name="TempChoice" value="F" $Fchecked$>
+                            <label for="radio-btn-2" class="btn" style="width:80%"><sup>o</sup>F</label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
+        <br>
+    </form>
+
+    <br>
+    <p id="saveStatus" visibility="hidden">No Status</p>
+    <br>
+
+    <table id="actions" class="buttons">
+        </tr>
+        <tr>
+            <!-- <td width="45%"><button id=saves class=myButton onclick="saveSettings()">SAVE</button></td> -->
+            <!-- for non html pages, uncomment above, comment out below -->
+            <td width="45%"><button id=saves class=myButton onclick="saveSettingsWebSocket()">SAVE</button></td>
+            <td width="5%"></td>
+            <td width="45%"><a href=\ class="myButton">HOME</a></td>
+        </tr>
+        </tbody>
+    </table>
+    <!-- <button id=websocketsave class=myButton onclick="saveSettingsWebSocket()">socketsave</button> -->
+    <!-- used during development. TODO delete before release -->
+
+    <br>
+
+    <script>
+        // function saveSettings() {
+        //     document.getElementById("saves").style.backgroundColor = "lightslategrey";
+        //     var rbutton = setTimeout(buttonReset, 500);
+        //     var tempSetting = document.getElementById("radio-btn-1").checked;
+        //     if (tempSetting) {
+        //         tempSetting = "C";
+        //     } else {
+        //         tempSetting = "F";
+        //     }
+        //
+        //     var localNameValue = document.getElementById("localName").value;
+        //
+        //     request = new XMLHttpRequest();
+        //     requestData = "saveOptions&localName=" + localNameValue + "&TempSetting=" + tempSetting + "&";
+        //     request.open("GET", requestData, true);
+        //     request.send(null);
+        //     console.log("Sent XMLHttp request: " + requestData)
+        //         // check success of saving via websocekt here
+        //     document.getElementById("saveStatus").innerHTML = "Settings updated.";
+        //     document.getElementById("saveStatus").style.color = "limegreen";
+        // }
+
+        function buttonReset() {
+            document.getElementById("saves").style.backgroundColor = "#111111";
+        }
+        //***************************************************************************
+        // setup Websockets                                                         *
+        //***************************************************************************
+        // var wsUri = 'ws://' + location.hostname + ':81/';
+        // will this work with out bonjour?  try on tablet
+        var wsUri = 'ws://192.168.1.11:81/';
+
+        function init() {
+            var tempString = "";
+
+            // document.getElementById("pageStatus").style.visibility = "hidden";
+            document.getElementById("saveStatus").style.visibility = "hidden";
+            document.getElementById("gdiSettings").style.visibility = "hidden";
+            document.getElementById("tempSettings").style.visibility = "hidden";
+            document.getElementById("saves").style.visibility = "hidden";
+            console.log("Initiating settings page Functions");
+            document.getElementById("pageStatus").innerHTML = "Requesting Configuration"
+            document.getElementById("pageStatus").style.color = "yellow";
+            // document.getElementById("pageStatus").style.visiblity = "visible";
+            queryWebSocket();
+        }
+
+        function queryWebSocket() {
+            websocket = new WebSocket(wsUri);
+            websocket.onopen = function(evt) {
+                console.log("Websocket Connected.");
+                console.log("Message Sent is : request_Status");
+                websocket.send("request_Status");
+            };
+            websocket.onclose = function(evt) {
+                console.log("Websocket disconnected");
+            };
+            websocket.onmessage = function(evt) {
+                onMessage(evt);
+            };
+            websocket.onerror = function(evt) {
+                console.log("Websocket Error! " + evt.data);
+                document.getElementById("pageStatus").style.color = "red";
+                document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+            };
+        }
+
+        function onMessage(evt) {
+            console.log("Message Recieved is: " + evt.data);
+            websocket.close(); // this closes the socket when a message is recieved.
+            // process returned string - format Status#localName#C
+            var indexLocalName, indexTempSetting = 0;
+            indexLocalName = evt.data.indexOf("#");
+            console.log("indexLocalName is " + indexLocalName);
+            indexTempSetting = evt.data.indexOf("#", (indexLocalName + 1));
+            console.log("indexTempSetting is " + indexTempSetting);
+            var valueLocalName = evt.data.slice((indexLocalName + 1), indexTempSetting);
+            console.log("valueLocalName is: " + valueLocalName);
+            var valueTempSetting = evt.data.slice(indexTempSetting + 1);
+            console.log("valueTempSetting is: " + valueTempSetting);
+            if (valueTempSetting == 'C') {
+                console.log("C chosen")
+                document.getElementById("radio-btn-1").checked = true;
+            } else {
+                document.getElementById("radio-btn-2").checked = true;
+            }
+            document.getElementById("localName").value = valueLocalName;
+            document.getElementById("gdiSettings").style.visibility = "visible";
+            document.getElementById("tempSettings").style.visibility = "visible";
+            document.getElementById("saves").style.visibility = "visible";
+            document.getElementById("pageStatus").style.visibility = "hidden";
+        }
+
+        function saveSettingsWebSocket() {
+            var tempString1, tempString2 = "";
+            document.getElementById("saveStatus").innerHTML = "Saving Settings";
+            document.getElementById("saveStatus").style.color = "yellow";
+            document.getElementById("saveStatus").style.visibility = "visible";
+            saveWebsocket = new WebSocket(wsUri);
+            saveWebsocket.onopen = function(evt) {
+                console.log("Save Websocket Connected.");
+                tempString1 = "=" + document.getElementById("localName").value + "&";
+
+                if (document.getElementById("radio-btn-1").checked) {
+                    tempString2 = "=C&";
+                } else {
+                    tempString2 = "=F&";
+                }
+
+                console.log("Message Sent is : update_" + tempString1 + tempString2); //(send localanme and temp setting here)
+                saveWebsocket.send("update_" + tempString1 + tempString2);
+
+            };
+            saveWebsocket.onclose = function(evt) {
+                console.log("Save Websocket disconnected");
+            };
+            saveWebsocket.onmessage = function(evt) {
+
+                document.getElementById("saveStatus").innerHTML = evt.data;
+                // document.getElementById("saveStatus").style.visibility = "visible";
+                if (evt.data == "Settings Saved.") {
+                    document.getElementById("saveStatus").style.color = "limegreen";
+                } else {
+                    document.getElementById("saveStatus").style.color = "red";
+                }
+                websocket.close(); // also todo - stop closing.. open, check if open instead/??
+            };
+            saveWebsocket.onerror = function(evt) {
+                console.log("Save Websocket Error! " + evt.data);
+
+            };
+        }
+
+        function demoDisplay() {
+            document.getElementById("gdiSettings").style.visibility = "hidden";
+            document.getElementById("tempSettings").style.visibility = "hidden";
+        }
+
+        window.addEventListener("load", init, false);
+    </script>
+</body>
+
+</html>
+l> l> > > > > > body>
+
+</html>
+l> l> > > > > >

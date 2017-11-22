@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>LCL GDI</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <style type="text/css">
+        html,
+        body,
+        h1,
+        form,
+        fieldset,
+        legend,
+        ol,
+        li {
+            margin: 0;
+            padding: 0% 0% 0% 1%;
+            font-family: Century Gothic, sans-serif;
+        }
+
+        body {
+            background-color: #111111;
+            font-size: 100% font-family: Century Gothic, sans-serif;
+        }
+
+        h1 {
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-size: 7em;
+            display: block;
+            width: 100%;
+            vertical-align: center;
+            text-align: center;
+            margin-bottom: 0px;
+        }
+
+        p {
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-size: 2em;
+            display: block;
+            width: 100%;
+            vertical-align: center;
+            text-align: center;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        p1 {
+            font-size: 0.5em;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        p.small_line_spaces {
+            line-height: 25%;
+        }
+
+        .myButton {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 50px;
+            -webkit-border-radius: 50px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 5em;
+            text-decoration: none;
+            line-height: 1.5;
+            display: block;
+            min-width: 100%;
+            vertical-align: center;
+            text-align: center;
+            padding: 0px;
+        }
+
+        .myButton:active {
+            -ms-transform: scale(0.9);
+            /* IE 9 */
+            -webkit-transform: scale(0.9);
+            /* Safari */
+            transform: scale(0.9);
+            transition,
+            0.1s ease;
+        }
+
+        label {
+            color: white;
+            display: block;
+            width: 45%;
+            float: left;
+        }
+
+        table,
+        th,
+        td {
+            border: 10px;
+            border-spacing: 20px;
+            color: SlateGrey;
+        }
+
+        input[type=radio] {
+            display: none;
+        }
+
+        input[type=checkbox] {
+            display: none;
+        }
+
+        input[type=radio]+label.btn {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 10px 5px;
+            -webkit-border-radius: 10px 15px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 6em;
+            padding: 5px 15px;
+            line-height: 1.3333333;
+            display: block;
+            width: 40%;
+            vertical-align: center;
+            text-align: center;
+            margin-right: 1%;
+        }
+
+        input[type=radio]+label.btn:hover {
+            background-color: LightSlateGrey;
+        }
+
+        input[type=radio]:checked+label.btn {
+            background-color: DarkSlateGrey;
+        }
+
+        input[type=checkbox]+label.btn {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 10px 5px;
+            -webkit-border-radius: 10px 15px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 6em;
+            padding: 5px 15px;
+            text-decoration: none;
+            line-height: 1.3333333;
+            display: block;
+            width: 50%;
+            vertical-align: center;
+            text-align: center;
+        }
+
+        input[type=checkbox]+label.btn:hover {
+            background-color: LightSlateGrey;
+        }
+
+        input[type=checkbox]:checked+label.btn {
+            background-color: DarkSlateGrey;
+        }
+
+        form#gdiSettings {
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            padding: 20px;
+            width: 90%;
+        }
+
+        form#gdiSettings fieldset {
+            border: none;
+            margin-bottom: 10px;
+        }
+
+        form#gdiSettings fieldset:last-of-type {
+            margin-bottom: 0;
+        }
+
+        form#gdiSettings legend {
+            color: white;
+            font-size: 6em;
+            font-weight: bold;
+            padding-bottom: 10px;
+            font-family: Century Gothic, sans-serif;
+        }
+
+        form#gdiSettings li {
+            background: #111111;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 2px;
+            -moz-border-radius: 15px;
+            -webkit-border-radius: 15px;
+            border-radius: 15px;
+            line-height: 30px;
+            list-style: none;
+            padding: 5px 10px;
+            margin-bottom: 10px;
+        }
+
+        form#gdiSettings ol ol li {
+            background: none;
+            border: none;
+            float: left;
+        }
+
+        form#gdiSettings label {
+            float: left;
+            font-size: 4em;
+            width: 45%;
+            padding: 25px 0px 0px 0px;
+        }
+
+        form#gdiSettings fieldset fieldset label {
+            background: none no-repeat left 50%;
+            width: auto;
+        }
+
+        form#gdiSettings input:not([type=radio]),
+        form#gdiSettings textarea {
+            background: lightslategrey;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -khtml-border-radius: 5px;
+            border-radius: 5px;
+            outline: none;
+            padding: 5px 5px;
+            width: 50%;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 2px;
+            font-size: 4em;
+        }
+    </style>
+</head>
+
+<!-- <body onload="startTime()"> -->
+
+<body>
+
+    <p id="timeHeading"><span style="font-size:4em;"></span></p>
+    <p id="dateHeading"><span style="line-height:20%">$DDMMYYYY$</span></p>
+    <p id="tempHeading" visibility="hidden"><span style="line-height:20%">$TEMPERATURE$ <sup>o</sup>C</span></p>
+
+    <input type=hidden id=LocalTime name=LTIME value="12:00">
+    <input type=hidden id=LocalMinutes name=LDATE value=$DDMMYYYY$>
+    <input type=hidden id=LocalTemperature name=LTEMP value=$TEMPERATURE$>
+
+    <table style="width:100%;">
+        <tbody>
+            <tr>
+                <td><button id="d0" class="myButton" onclick="DoorActivate(0);" formaction="door1">DOOR 1</button></td>
+                <td><button id="d2" class="myButton" onclick="DoorActivate(2);" formaction="door2">DOOR 2</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="settings.html">
+        <img src='setting.png' style='position:fixed;width:100px;height:100px;bottom:0px;right:0px;' alt='settings'>
+    </a>
+    <script>
+        var thisDoor = "d0";
+
+        var today = new Date();
+        var h = today.getHours();
+        var m = today.getMinutes();
+        var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        var DATEvalue = days[today.getDay()] + today.getDate() + months[today.getMonth()] + today.getFullYear();
+        var GMTOffset = today.getTimezoneOffset();
+
+        function DoorActivate(selectDoor) {
+
+            thisDoor = "d" + selectDoor;
+
+            document.getElementById(thisDoor).style.backgroundColor = "lightslategrey";
+
+            //ws.send(“Hello World”);  // my first websocket :)
+
+            var rbutton = setTimeout(buttonReset, 500);
+
+            request = new XMLHttpRequest();
+            // requestData = "?gpio" + selectDoor + " on" + " TSTAMP:"+ h + ":" + m + DATEvalue +"GMT:" + GMTOffset;
+            //requestData = "?gpio" + selectDoor;
+            requestData = "gpio_" + selectDoor;
+            console.log("Requesting " + requestData);
+            request.open("GET", requestData, true);
+            request.send(null);
+
+        }
+
+        function buttonReset() {
+            document.getElementById("d0").style.backgroundColor = "#111111";
+            document.getElementById("d2").style.backgroundColor = "#111111";
+        }
+
+        function startTime() {
+            console.log("Running startTime");
+            configureWebSocket(m);
+            console.log("websocket Configured");
+            today = new Date();
+            h = today.getHours();
+            m = today.getMinutes();
+            //DATEvalue = days[today.getDay()] + today.getDate() + months[today.getMonth()] + today.getFullYear();
+            DATEvalue = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear();
+            GMTOffset = today.getTimezoneOffset();
+            m = checkTime(m);
+            h = checkTime(h);
+            document.getElementById("timeHeading").innerHTML = "<span style='font-size:4em;'>" + h + ":" + m;
+            document.getElementById("dateHeading").innerHTML = DATEvalue;
+            var t = setTimeout(startTime, 30000);
+        }
+
+        function checkTime(i) {
+            if (i < 10) {
+                i = "0" + i
+            }; // add zero in front of numbers < 10
+            return i;
+        }
+
+        var wsUri = 'ws://' + location.hostname + ':81/';
+        // var wsUri = "ws://192.168.1.15:81";
+        // var output;
+
+        function init() {
+            console.log("Initiating  Functions");
+            document.getElementById("tempHeading").style.visibility = "hidden";
+            //output = document.getElementById("tempHeading");
+            console.log("printing hostname");
+            console.log(location.hostname); // comes out blank...
+            startTime();
+        }
+
+        function configureWebSocket() {
+            websocket = new WebSocket(wsUri);
+            console.log("new WebSocket Created");
+            websocket.onopen = function(evt) {
+                console.log("Websocket Connected");
+                doSend("request_Temperature");
+                console.log("request_Temperature Sent");
+            };
+            websocket.onclose = function(evt) {
+                onClose(evt)
+            };
+            websocket.onmessage = function(evt) {
+                onMessage(evt)
+            };
+            websocket.onerror = function(evt) {
+                onError(evt)
+            };
+        }
+
+        function onClose(evt) {
+            console.log("Websocket disconnected");
+        }
+
+        function onMessage(evt) {
+            console.log("Message Recieved is: " + evt.data);
+            document.getElementById("tempHeading").innerHTML = evt.data + " <sup>o</sup>C";
+            document.getElementById("tempHeading").style.visibility = "visible";
+            websocket.close(); // this closes the socket when a message is recieved.
+        }
+
+        function onError(evt) {
+            console.log("Websocket Error! " + evt.data);
+        }
+
+        function doSend(message) {
+            console.log("Message Sent is : " + message);
+            websocket.send(message);
+        }
+        window.addEventListener("load", init, false);
+    </script>
+
+</body>
+
+</html>
+
+</html>
+
+</html>

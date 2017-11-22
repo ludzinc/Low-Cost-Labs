@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>LCL GDI: SSID LIST</title>
+    <style type="text/css">
+        html,
+        body,
+        h1,
+        form,
+        fieldset,
+        legend,
+        ol,
+        li {
+            margin: 0;
+            padding: 0% 0% 0% 1%;
+            font-family: Century Gothic, sans-serif;
+        }
+
+        body {
+            background-color: #111111;
+            font-size: 100% font-family: Century Gothic, sans-serif;
+        }
+
+        h1 {}
+
+        p {
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-size: 2em;
+            display: block;
+            width: 100%;
+            vertical-align: center;
+            text-align: center;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        p1 {
+            font-size: 0.5em;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        p.small_line_spaces {
+            line-height: 25%;
+        }
+
+        .myButton {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 50px;
+            -webkit-border-radius: 50px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 5em;
+            text-decoration: none;
+            line-height: 1.5;
+            display: block;
+            min-width: 100%;
+            vertical-align: center;
+            text-align: center;
+            padding: 0px;
+        }
+
+        .myButton:active {
+            -ms-transform: scale(0.9);
+            /* IE 9 */
+            -webkit-transform: scale(0.9);
+            /* Safari */
+        }
+
+        label {
+            color: white;
+            display: block;
+            width: 45%;
+            float: left;
+        }
+
+        table.SSIDs {
+            color: white;
+            border: 1px solid lightSlateGrey;
+            border-collapse: collapse;
+            border-spacing: 5px;
+            color: white;
+            text-align: center;
+            width: 80%;
+            margin-left: 10%;
+            margin-right: 10%;
+            font-size: 4em;
+        }
+
+        table.SSIDs tr {
+            border: 1px solid lightSlateGrey;
+        }
+
+        table.SSIDs td {
+            border: 1px solid lightSlateGrey;
+        }
+
+        table.buttons {
+            color: white;
+            text-align: center;
+            width: 80%;
+            margin-left: 10%;
+            margin-right: 10%;
+            border: none;
+        }
+
+        table.buttons td {
+            border-spacing: 20px;
+        }
+
+        table.buttons tr {
+            //border: 1px solid lightSlateGrey;
+        }
+
+        table thead th {
+            background-color: lightSlateGrey;
+            color: black;
+            font-size: 80px;
+            font-weight: bold;
+            border: 1px solid black;
+        }
+
+        table thead {
+            border: 1px solid lightSlateGrey;
+        }
+
+        input[type=radio] {
+            display: none;
+        }
+
+        input[type=checkbox] {
+            display: none;
+        }
+
+        input[type=radio]+label.btn {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 10px 5px;
+            -webkit-border-radius: 10px 15px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 6em;
+            padding: 5px 15px;
+            line-height: 1.3333333;
+            display: block;
+            width: 40%;
+            vertical-align: center;
+            text-align: center;
+            margin-right: 1%;
+        }
+
+        input[type=radio]+label.btn:hover {
+            background-color: LightSlateGrey;
+        }
+
+        input[type=radio]:checked+label.btn {
+            background-color: DarkSlateGrey;
+        }
+
+        input[type=checkbox]+label.btn {
+            background-color: #111111;
+            border-color: SlateGrey;
+            -moz-border-radius: 10px 5px;
+            -webkit-border-radius: 10px 15px;
+            border-radius: 50px;
+            border: 5px solid SlateGrey;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            font-family: Century Gothic, sans-serif;
+            font-size: 6em;
+            padding: 5px 15px;
+            text-decoration: none;
+            line-height: 1.3333333;
+            display: block;
+            width: 50%;
+            vertical-align: center;
+            text-align: center;
+        }
+
+        input[type=checkbox]+label.btn:hover {
+            background-color: LightSlateGrey;
+        }
+
+        input[type=checkbox]:checked+label.btn {
+            background-color: DarkSlateGrey;
+        }
+
+        form#gdiSettings {
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            padding: 0px 5px 0px 5px;
+            width: 79%;
+            margin-left: 10%;
+            margin-right: 10%;
+        }
+
+        form#gdiSettings fieldset {
+            border: none;
+            margin-bottom: 10px;
+        }
+
+        form#gdiSettings fieldset:last-of-type {
+            margin-bottom: 0;
+        }
+
+        form#gdiSettings legend {
+            color: white;
+            font-size: 4em;
+            font-weight: bold;
+            font-family: Century Gothic, sans-serif;
+        }
+
+        form#gdiSettings li {
+            background: #111111;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 2px;
+            -moz-border-radius: 15px;
+            -webkit-border-radius: 15px;
+            border-radius: 15px;
+            line-height: 30px;
+            list-style: none;
+            padding: 5px 5px;
+            margin-bottom: 10px;
+        }
+
+        form#gdiSettings ol ol li {
+            background: none;
+            border: none;
+            float: left;
+        }
+
+        form#gdiSettings label {
+            float: left;
+            font-size: 3em;
+            width: 45%;
+            padding: 25px 0px 0px 0px;
+        }
+
+        form#gdiSettings fieldset fieldset label {
+            background: none no-repeat left 50%;
+            width: auto;
+        }
+
+        form#gdiSettings input:not([type=radio]) {
+            background: lightslategrey;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -khtml-border-radius: 5px;
+            border-radius: 5px;
+            outline: none;
+            padding: 10px 5px;
+            width: 50%;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 1px;
+            font-size: 3em;
+        }
+
+        form#gdiSettings textarea {
+            background: lightslategrey;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -khtml-border-radius: 5px;
+            border-radius: 5px;
+            outline: none;
+            padding: 0px 5px;
+            width: 50%;
+            border-color: lightslategrey;
+            border-style: solid;
+            border-width: 1px;
+            font-size: 3em;
+        }
+
+        form#gdiButtons {
+            display: inline;
+        }
+    </style>
+</head>
+
+<body>
+    <p><span style="font-size:4em;">SSID LISTING</span></p>
+    <p id="pageStatus">No Current Status</p>
+    <table class="SSIDs" id="tableSSID">
+        <thead>
+            <tr>
+                <th>SSID</th>
+                <th>RSSI</th>
+                <th>TYPE</th>
+            </tr>
+        </thead>
+        <!-- <tbody>
+        </tbody> -->
+    </table>
+
+    <br>
+
+    <form id=gdiSettings>
+        <fieldset>
+            <legend>SET</legend>
+            <ol>
+                <li>
+                    <label for=SSID>SSID:</label>
+                    <input id=SSID name=SSID type=text>
+                </li>
+                <li>
+                    <label for=PASSWORD>PASSWORD:</label>
+                    <input id=PASSWORD name=PASSWORD>
+                </li>
+                <li>
+                    <label for=CPASSWORD>CONFIRM:</label>
+                    <input id=CPASSWORD name=CPASSWORD>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
+    <br>
+    <p id="saveStatus"></p>
+    <br>
+
+    <table class="buttons">
+        <tbody>
+            <tr>
+                <td width="45%"><button id=saves class=myButton onclick="saveSettingsWebSocket()">SAVE</button></td>
+                <td width="5%"></td>
+                <td width="45%"><a href=\ class="myButton">HOME</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script language="javascript" type="text/javascript">
+        //***************************************************************************
+        // setup Websockets                                                         *
+        //***************************************************************************
+        var wsUri = 'ws://' + location.hostname + ':81/';
+        var output;
+        var tableLines = ["", "", "", "", "", "", "", "", "", ""];
+        var numberLines = 0;
+        var RSSIs = ["", "", "", "", "", "", "", "", "", ""];
+        var SSIDs = ["", "", "", "", "", "", "", "", "", ""];
+        var TYPEs = ["", "", "", "", "", "", "", "", "", ""];
+
+        function init() {
+            console.log("Initiating settings page Functions");
+            document.getElementById("pageStatus").innerHTML = "Requesting SSID List."
+            document.getElementById("pageStatus").style.color = "yellow";
+            // document.getElementById("saves").style.visibility = "hidden";
+            // document.getElementById("saves").disabled = true;
+            queryWebSocket();
+        }
+
+        function queryWebSocket() {
+            websocket = new WebSocket(wsUri);
+            websocket.onopen = function(evt) {
+                console.log("Websocket Connected.");
+                console.log("Message Sent is : request_listSSIDs");
+                websocket.send("request_listSSIDs");
+            };
+            websocket.onclose = function(evt) {
+                console.log("Websocket disconnected");
+                addRows("tableSSID");
+            };
+            websocket.onmessage = function(evt) {
+                onMessage(evt);
+            };
+            websocket.onerror = function(evt) {
+                console.log("Websocket Error! " + evt.data);
+                document.getElementById("pageStatus").style.color = "red";
+                document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+            };
+        }
+
+        function onMessage(evt) {
+            var messageRecieved = evt.data;
+            var indexSSID, indexRSSI, indexTYPE, indexEND;
+            console.log("Message Recieved is: " + messageRecieved);
+            if (messageRecieved.startsWith('No')) {
+                websocket.close(); // this closes the socket when a message is recieved.
+                console.log("SSID Table Completed");
+                document.getElementById("pageStatus").style.visibility = "hidden"
+            }
+            tableLines[numberLines] = messageRecieved;
+            // need an array of these.. strip SSID, RSSI, TYPE here
+            indexSSID = messageRecieved.indexOf("<tr><td>");
+            indexRSSI = messageRecieved.indexOf("</td><td>");
+            indexTYPE = messageRecieved.indexOf("</td><td>", indexRSSI + 1);
+            indexEND = messageRecieved.indexOf("</td></tr>", indexRSSI + 1);
+
+            console.log("IndexSSID is " + indexSSID + " IndexRSSI is " + indexRSSI + " IndexTYPE is " + indexTYPE + " IndexEND is " + indexEND);
+
+            SSIDs[numberLines] = messageRecieved.substr(indexSSID + 8, indexRSSI - 8);
+            RSSIs[numberLines] = messageRecieved.substr(indexRSSI + 9, indexTYPE - (indexRSSI + 9));
+            TYPEs[numberLines] = messageRecieved.substr(indexTYPE + 9, indexEND - (indexTYPE + 9));
+
+            console.log("SSID " + numberLines + " is " + SSIDs[numberLines]);
+            console.log("RSSI " + numberLines + " is " + RSSIs[numberLines]);
+            console.log("TYPE " + numberLines + " is " + TYPEs[numberLines]);
+            numberLines++;
+        }
+
+        function addRows(tableID) {
+            // Get a reference to the table
+            var tableRef = document.getElementById(tableID);
+
+            console.log("tableRef is" + tableRef);
+            console.log("Building SSID Table");
+            for (i = 0; i < numberLines; i++) {
+                console.log("Loop index is " + i);
+                var newRow = tableRef.insertRow(i + 1);
+                var newCell_0 = newRow.insertCell(0);
+                var newCell_1 = newRow.insertCell(1);
+                var newCell_2 = newRow.insertCell(2);
+                newCell_0.innerHTML = SSIDs[i];
+                console.log("SSID for Row " + i + " is " + SSIDs[i]);
+                newCell_1.innerHTML = RSSIs[i];
+                console.log("RSSI for Row " + i + " is " + RSSIs[i]);
+                newCell_2.innerHTML = TYPEs[i];
+                console.log("TYPE for Row " + i + " is " + TYPEs[i]);
+            }
+        }
+
+        // function saveSettings() {
+        //     document.getElementById("saves").style.backgroundColor = "lightslategrey";
+        //
+        //     var rbutton = setTimeout(buttonReset, 500);
+        //     var SSIDvalue = document.getElementById("SSID").value;
+        //     var PASSWORDvalue = document.getElementById("PASSWORD").value;
+        //     var CPASSWORDvalue = document.getElementById("CPASSWORD").value;
+        //
+        //     if (PASSWORDvalue == CPASSWORDvalue) {
+        //
+        //         request = new XMLHttpRequest();
+        //         requestData = "saveNetwork?&SSID=" + SSIDvalue + "&PASSWORD:" + PASSWORDvalue + "&";
+        //         request.open("GET", requestData, true);
+        //         request.send(null);
+        //
+        //         document.getElementById("savestatus").innerHTML = "Settings successfully updated.";
+        //         document.getElementById("savestatus").style.color = "limegreen";
+        //
+        //     } else {
+        //         document.getElementById("savestatus").innerHTML = "Settings update failed.  Passwords don't match.";
+        //         document.getElementById("savestatus").style.color = "red";
+        //     }
+        //
+        // }
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~``
+        function saveSettingsWebSocket() {
+            var tempString1, tempString2 = "";
+            document.getElementById("saveStatus").innerHTML = "Saving Settings.";
+            document.getElementById("saveStatus").style.color = "yellow";
+            document.getElementById("saveStatus").style.visibility = "visible";
+            if (document.getElementById("SSID").value == "" || document.getElementById("PASSWORD").value == "" || document.getElementById("CPASSWORD").value == "") {
+                document.getElementById("saveStatus").innerHTML = "Fail.  Blank Data Fields.";
+                document.getElementById("saveStatus").style.color = "red";
+            } else if (document.getElementById("PASSWORD").value == document.getElementById("CPASSWORD").value) {
+                saveWebsocket = new WebSocket(wsUri);
+                saveWebsocket.onopen = function(evt) {
+                    console.log("Save Websocket Connected.");
+                    tempString1 = "=SSID_" + document.getElementById("SSID").value + "&";
+                    tempString2 = "=PASS_" + document.getElementById("PASSWORD").value + "&";
+                    // tempString3 = "=" + document.getElementById("CPASSWORD").value + "&";
+                    console.log("Message Sent is : update_=NAME_&=TEMP_&" + tempString1 + tempString2); //(send localanme and temp setting here)
+                    saveWebsocket.send("update_=NAME_&=TEMP_&" + tempString1 + tempString2);
+                }
+            } else {
+                document.getElementById("saveStatus").innerHTML = "Fail.  Passwords Don't Match.";
+                document.getElementById("saveStatus").style.color = "red"
+            }
+            saveWebsocket.onclose = function(evt) {
+                console.log("Save Websocket disconnected");
+            };
+            saveWebsocket.onmessage = function(evt) {
+
+                document.getElementById("saveStatus").innerHTML = evt.data;
+                // document.getElementById("saveStatus").style.visibility = "visible";
+                if (evt.data == "Settings Saved.") {
+                    document.getElementById("saveStatus").style.color = "limegreen";
+                } else {
+                    document.getElementById("saveStatus").style.color = "red";
+                }
+                websocket.close(); // also todo - stop closing.. open, check if open instead/??
+            };
+            saveWebsocket.onerror = function(evt) {
+                console.log("Save Websocket Error! " + evt.data);
+
+            };
+        }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        function buttonReset() {
+            document.getElementById("saves").style.backgroundColor = "#111111";
+        }
+        window.addEventListener("load", init, false);
+    </script>
+</body>
+
+</html>

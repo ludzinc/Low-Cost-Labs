@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project>
+  <executable name="dist/default/production/Garage_Door_Interface.X.production.elf">
+    <memory name="data">
+      <units>bytes</units>
+      <length>2048</length>
+      <used>892</used>
+      <free>1156</free>
+    </memory>
+    <memory name="program">
+      <units>bytes</units>
+      <length>16128</length>
+      <used>12621</used>
+      <free>3507</free>
+    </memory>
+  </executable>
+</project>
