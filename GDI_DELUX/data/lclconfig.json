@@ -1,0 +1,17 @@
+{
+  "Version"	:"3",
+  "SSID"	:"Ludzinc",
+  "Password"	:"Renegade!",
+  "hostName"	:"gdidev",
+  "temperatureChoice": "C",
+  "APName"	:"GDIAP_xxxxxx",
+  "APPass"	:"welcome1!",
+  "buttonMode"	:[0,0,0,1], 
+  "inputMode"	:[0,0,0,1],
+  "buttonNames"	:["DOOR 1","DOOR 2","DOOR 2","Light"],
+  "show"	:[1,1,0,1],
+  "onTime"	:[500,500,500,300000],
+  "buttonPWM"	:[255,1024],
+  "tempSlope"	:1,
+  "tempIntercept":-5
+}
