@@ -143,7 +143,7 @@ void checkStates(inputData & input, int i) {
     input.flag = 0;
     input.previousMillis = millis();
     if (input.mode == 0) {            // turns on output if door button is pressed
-      input.onTime = doorDelay;
+//      input.onTime = doorDelay;     // set when reading settings file
       lightON = 1;                          // Flag to turn on light if a door button has been pressed
       DEBUG_PRINTLN("Door output active, setting LIGHT ON Flag");
     } else if (input.mode == 1) {     // Toggles light if light button has been pressed
@@ -167,7 +167,7 @@ void checkLights(inputData & input, int i) {
       input.active = 1;
       input.flag = 0;
       input.previousMillis = millis();
-      input.onTime = lightDelay;
+//      input.onTime = lightDelay; // set when reading settings file
       DEBUG_PRINT("Light "); DEBUG_PRINT(i); DEBUG_PRINTLN(" set with delay "); DEBUG_PRINTLN(input.onTime);
     } else if (lightON == 2) {
       input.active = 0;

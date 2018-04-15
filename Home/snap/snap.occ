@@ -1,0 +1,24 @@
+CC5X Version 3.2, Copyright (c) B Knudsen Data, Norway 1992-2004, No. 1654
+ --> EXTENDED edition, 8-32 bit int, 16-32 bit float, 8k code
+SNAP.C:
+ 29. Dec 2010   0:27
+ Chip = 16F627A
+Warning[1] C:\Simon\CC5x\Projects\SNAP\SNAP.C 357 : Local variables and parameters in uncalled functions are not allocated (7)
+ (The application contains non-library functions that are not called. Local
+ variables in these functions (option -wU) are not allocated to save space)
+ RAM : -------- -------- -------- -------- ======== ======== ======== ........
+  40h: ........ ........ ........ ..****** ******** ******** =******* ********
+  80h: -------- -------- -------- -------- ******** ******** ******** ********
+  C0h: ******** ******** ******** ******** ******** ******** -------- --------
+ 100h: -------- -------- -------- -------- ******** ******** ******** ********
+ 140h: ******** ********
+RAM usage: 59 bytes (25 local), 165 bytes free
+ File 'SNAP.fcs'
+ Optimizing - removed 20 instructions (-4 %)
+ File 'SNAP.var'
+ File 'SNAP.asm'
+ File 'SNAP.lst'
+ File 'SNAP.cod'
+ File 'SNAP.occ'
+ File 'SNAP.hex'
+Total of 433 code words (42 %)

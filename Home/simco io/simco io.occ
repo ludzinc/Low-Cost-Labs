@@ -1,0 +1,19 @@
+CC5X Version 3.2, Copyright (c) B Knudsen Data, Norway 1992-2004, No. 1654
+ --> EXTENDED edition, 8-32 bit int, 16-32 bit float, 8k code
+SIMCO IO.C:
+  8. Dec 2010  12:51
+
+ // an undefined chip type
+ #error Interrupt save and restore macro's are undefined for this chip
+                                                                      ^------
+Error INT16CXX.H 377: Interrupt save and restore macro's are undefined for this chip
+
+#pragma codepage 0
+interrupt IntHandler() {
+        ^------
+Error SIMCO IO.C 57: Syntax error (or limitation)
+ (CC5X is unable to compile the expression due to syntax error or
+ limited C support. Code correction is required. Check also for
+ unbalanced block delimiters '{ .. }' in previous statements)
+
+Error options: -ew: no warning details  -ed: no error details  -eL: list details

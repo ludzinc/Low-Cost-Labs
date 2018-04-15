@@ -16,7 +16,7 @@
     - Webpage can concatenate buttons( i.e. a 'both' button to trigger two doors at once)
 */
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
+#include <WiFiClient.h>m
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 #include <ESP8266mDNS.h>
@@ -146,8 +146,8 @@ void setup(void) {
   for (int i = 0; i < 2; i++) {
     panelButtonPWM[i] = 0;
   }
-  //  initI2CModules();
-  //  writeIOModule(0x00, 0x10);                      // Turn on I2C Status LED (validate I2C is working)
+    initI2CModules();
+    writeIOModule(0x00, 0x10);                      // Turn on I2C Status LED (validate I2C is working)
   delay(1000);
 
   SPIFFS.begin();

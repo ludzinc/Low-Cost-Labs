@@ -1,0 +1,47 @@
+
+CC5X Version 3.2, Copyright (c) B Knudsen Data.
+* FUNCTION CALL STRUCTURE
+
+F: IntHandler             :#0 
+
+F: main                   :#0 
+    InitialiseHardware    : #1 
+    InitialiseGlobals     : #1 
+    delay                 : #4 
+    CheckSeconds          : #1 
+    debounce              : #2 
+    debounce              : #2 
+    delay                 : #4 
+    ReadDIP               : #2 
+    ReadDIP               : #2 
+    delay                 : #4 
+    delay                 : #4 
+
+F: InitialiseHardware     :#1 
+
+F: InitialiseGlobals      :#1 
+
+F: CheckSeconds           :#1 
+
+F: ReadDIP                :#2 
+
+F: debounce               :#2 
+
+F: delay                  :#4 
+
+
+ L1  IntHandler
+
+ L0  main
+ L1    InitialiseHardware
+ L1    InitialiseGlobals
+ L1    delay
+ L1    CheckSeconds
+ L1    debounce
+ L1    debounce
+ L1    delay
+ L1    ReadDIP
+ L1    ReadDIP
+ L1    delay
+ L1    delay
+

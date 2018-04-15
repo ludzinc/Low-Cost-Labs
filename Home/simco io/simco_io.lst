@@ -1,0 +1,1095 @@
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 1
+
+ADDR CODE  LINE SOURCE
+
+           0001 
+           0002 ; CC5X Version 3.2, Copyright (c) B Knudsen Data
+           0003 ; C compiler for the PICmicro family
+           0004 ; ************  22. Dec 2010  17:16  *************
+           0005 
+           0006 	processor  16F627A
+           0007 	radix  DEC
+           0008 
+     0000  0009 INDF        EQU   0x00
+     0003  0010 STATUS      EQU   0x03
+     0004  0011 FSR         EQU   0x04
+     0005  0012 PORTA       EQU   0x05
+     0085  0013 TRISA       EQU   0x85
+     0006  0014 PORTB       EQU   0x06
+     0086  0015 TRISB       EQU   0x86
+     000B  0016 INTCON      EQU   0x0B
+     0000  0017 Carry       EQU   0
+     0002  0018 Zero_       EQU   2
+     0005  0019 RP0         EQU   5
+     0006  0020 RP1         EQU   6
+     0007  0021 IRP         EQU   7
+     0007  0022 GIE         EQU   7
+     0081  0023 OPTION_REG  EQU   0x81
+     000C  0024 PIR1        EQU   0x0C
+     0012  0025 T2CON       EQU   0x12
+     0019  0026 TXREG       EQU   0x19
+     001A  0027 RCREG       EQU   0x1A
+     001F  0028 CMCON       EQU   0x1F
+     008C  0029 PIE1        EQU   0x8C
+     008E  0030 PCON        EQU   0x8E
+     0092  0031 PR2         EQU   0x92
+     0098  0032 TXSTA       EQU   0x98
+     0099  0033 SPBRG       EQU   0x99
+     009A  0034 EEDATA      EQU   0x9A
+     009B  0035 EEADR       EQU   0x9B
+     009D  0036 EECON2      EQU   0x9D
+     0000  0037 RA0         EQU   0
+     0001  0038 RA1         EQU   1
+     0002  0039 RA2         EQU   2
+     0003  0040 RA3         EQU   3
+     0006  0041 RA6         EQU   6
+     0007  0042 RA7         EQU   7
+     0000  0043 RB0         EQU   0
+     0003  0044 RB3         EQU   3
+     0004  0045 RB4         EQU   4
+     0005  0046 RB5         EQU   5
+     0006  0047 RB6         EQU   6
+     0007  0048 RB7         EQU   7
+     0001  0049 TMR2IF      EQU   1
+     0004  0050 TXIF        EQU   4
+     0005  0051 RCIF        EQU   5
+     0001  0052 OERR        EQU   1
+     0002  0053 FERR        EQU   2
+     0004  0054 CREN        EQU   4
+     0007  0055 SPEN        EQU   7
+     0005  0056 RCIE        EQU   5
+     0001  0057 TRMT        EQU   1
+     0005  0058 TXEN        EQU   5
+     0000  0059 RD          EQU   0
+     0001  0060 WR          EQU   1
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 2
+
+ADDR CODE  LINE SOURCE
+
+     0002  0061 WREN        EQU   2
+     0038  0062 FSRTemp     EQU   0x38
+     0039  0063 T2ms        EQU   0x39
+     003A  0064 T10ms       EQU   0x3A
+     003B  0065 T100ms      EQU   0x3B
+     003C  0066 SecondsFlag EQU   0x3C
+     003D  0067 StartupFlag EQU   0x3D
+     003E  0068 RelayTimers EQU   0x3E
+     0046  0069 loop        EQU   0x46
+     0047  0070 temp        EQU   0x47
+     0057  0071 PacketLength EQU   0x57
+     0058  0072 PacketBytes EQU   0x58
+     0059  0073 RxData      EQU   0x59
+     005A  0074 ProtocolState EQU   0x5A
+     005B  0075 Foo         EQU   0x5B
+     0060  0076 InputStates EQU   0x60
+     0070  0077 svrWREG     EQU   0x70
+     0020  0078 svrSTATUS   EQU   0x20
+     0024  0079 i           EQU   0x24
+     0025  0080 StartFlag   EQU   0x25
+     0026  0081 text        EQU   0x26
+     0021  0082 input       EQU   0x21
+     0022  0083 state       EQU   0x22
+     0023  0084 counter     EQU   0x23
+     0037  0085 data        EQU   0x37
+     0021  0086 text_2      EQU   0x21
+     0022  0087 i_2         EQU   0x22
+     0027  0088 Buffer      EQU   0x27
+     0035  0089 i_3         EQU   0x35
+     0036  0090 text_3      EQU   0x36
+     007F  0091 address     EQU   0x7F
+     007F  0092 data_2      EQU   0x7F
+     007F  0093 address_2   EQU   0x7F
+     007F  0094 data_3      EQU   0x7F
+           0095 
+0000 28C3  0096 	GOTO main
+           0097 
+           0098   ; FILE SIMCO_IO.C
+           0099 			;// HOW TO GET cc5x to complie eeprom in MPLAB?? - without having to import hex file...
+           0100 			;//
+           0101 			;// TO DO
+           0102 			;//
+           0103 			;// 1.  Have look up table in EEPROM for RELAY ON times
+           0104 			;// 2.  Map inputs to outputs in EEPROM
+           0105 			;// 3.  Work out serial protocol - rx cmds, chksum and reply!
+           0106 			;// 4.  How to break routines out to sep. file so I get main.c alone.....
+           0107 			;
+           0108 			;
+           0109 			;//#define   PIC16F627A
+           0110 			;
+           0111 			;//#include "16F627A.H"
+           0112 			;#include "INT16CXX.H"
+           0113 			;#include "SIMCO_IO.H"
+           0114 			;//#include "SIMCO_ROUTINES.H"
+           0115 			;
+           0116 			;#pragma origin = 0x0004																	
+                   // CHECK THIS IN DATASHEET.  WHAT 0x0004 ???
+     0000  0117 	ORG 0x0004
+           0118 			;#pragma config        = 0b0011.1111.0101.1000   	// MCLR Pin is input
+           0119 			;//#pragma config        = 0b0011.1111.0111.1000   	// MCLR Pin is input
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 3
+
+ADDR CODE  LINE SOURCE
+
+           0120 			;
+           0121 			;
+           0122 			;
+           0123 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0124 			;// INTERRUPT ROUTINE
+           0125 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0126 			;#pragma codepage 0
+           0127 			;interrupt IntHandler() {
+           0128 IntHandler
+           0129 			;   	int_save_registers
+0004 00F0  0130 	MOVWF svrWREG
+0005 0E03  0131 	SWAPF STATUS,W
+0006 1283  0132 	BCF   0x03,RP0
+0007 1303  0133 	BCF   0x03,RP1
+0008 00A0  0134 	MOVWF svrSTATUS
+           0135 			;   	FSRTemp = FSR;
+0009 0804  0136 	MOVF  FSR,W
+000A 00B8  0137 	MOVWF FSRTemp
+           0138 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0139 			;// TIMING FUNCTIONS
+           0140 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0141 			;	if (TMR2IF == 1) {
+000B 1C8C  0142 	BTFSS 0x0C,TMR2IF
+000C 2866  0143 	GOTO  m004
+           0144 			;		T2ms++;
+000D 0AB9  0145 	INCF  T2ms,1
+           0146 			;		if (T2ms == 5) {
+000E 0839  0147 	MOVF  T2ms,W
+000F 3A05  0148 	XORLW .5
+0010 1D03  0149 	BTFSS 0x03,Zero_
+0011 2865  0150 	GOTO  m003
+           0151 			;			T10ms++;
+0012 0ABA  0152 	INCF  T10ms,1
+           0153 			;			T2ms = 0;
+0013 01B9  0154 	CLRF  T2ms
+           0155 			;			debounce(Input0,&InputStates[0],&InputCounters[0]);
+0014 01A1  0156 	CLRF  input
+0015 1805  0157 	BTFSC 0x05,RA0
+0016 0AA1  0158 	INCF  input,1
+0017 3060  0159 	MOVLW .96
+0018 00A2  0160 	MOVWF state
+0019 3064  0161 	MOVLW .100
+001A 00A3  0162 	MOVWF counter
+001B 2128  0163 	CALL  debounce
+           0164 			;			debounce(Input1,&InputStates[1],&InputCounters[1]);
+001C 01A1  0165 	CLRF  input
+001D 1885  0166 	BTFSC 0x05,RA1
+001E 0AA1  0167 	INCF  input,1
+001F 3061  0168 	MOVLW .97
+0020 00A2  0169 	MOVWF state
+0021 3065  0170 	MOVLW .101
+0022 00A3  0171 	MOVWF counter
+0023 2128  0172 	CALL  debounce
+           0173 			;			debounce(Input2,&InputStates[2],&InputCounters[2]);
+0024 01A1  0174 	CLRF  input
+0025 1905  0175 	BTFSC 0x05,RA2
+0026 0AA1  0176 	INCF  input,1
+0027 3062  0177 	MOVLW .98
+0028 00A2  0178 	MOVWF state
+0029 3066  0179 	MOVLW .102
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 4
+
+ADDR CODE  LINE SOURCE
+
+002A 00A3  0180 	MOVWF counter
+002B 2128  0181 	CALL  debounce
+           0182 			;			debounce(Input3,&InputStates[3],&InputCounters[3]);
+002C 01A1  0183 	CLRF  input
+002D 1985  0184 	BTFSC 0x05,RA3
+002E 0AA1  0185 	INCF  input,1
+002F 3063  0186 	MOVLW .99
+0030 00A2  0187 	MOVWF state
+0031 3067  0188 	MOVLW .103
+0032 00A3  0189 	MOVWF counter
+0033 2128  0190 	CALL  debounce
+           0191 			;			if (T10ms == 10) {
+0034 083A  0192 	MOVF  T10ms,W
+0035 3A0A  0193 	XORLW .10
+0036 1D03  0194 	BTFSS 0x03,Zero_
+0037 2865  0195 	GOTO  m003
+           0196 			;				T100ms++;
+0038 0ABB  0197 	INCF  T100ms,1
+           0198 			;				T10ms = 0;
+0039 01BA  0199 	CLRF  T10ms
+           0200 			;				if (T100ms == 10) {
+003A 083B  0201 	MOVF  T100ms,W
+003B 3A0A  0202 	XORLW .10
+003C 1D03  0203 	BTFSS 0x03,Zero_
+003D 2865  0204 	GOTO  m003
+           0205 			;					T100ms = 0;
+003E 01BB  0206 	CLRF  T100ms
+           0207 			;					SecondsFlag = 1;
+003F 3001  0208 	MOVLW .1
+0040 00BC  0209 	MOVWF SecondsFlag
+           0210 			;					//GreenLED=!GreenLED;
+           0211 			;					//RedLED=0;
+           0212 			;					StartupFlag=0;
+0041 01BD  0213 	CLRF  StartupFlag
+           0214 			;					for(loop=0;loop<4;loop++){
+0042 01C6  0215 	CLRF  loop
+0043 3004  0216 m001	MOVLW .4
+0044 0246  0217 	SUBWF loop,W
+0045 1803  0218 	BTFSC 0x03,Carry
+0046 2865  0219 	GOTO  m003
+           0220 			;						temp=RelayTimers[loop];
+0047 1003  0221 	BCF   0x03,Carry
+0048 0D46  0222 	RLF   loop,W
+0049 3E3E  0223 	ADDLW .62
+004A 0084  0224 	MOVWF FSR
+004B 1383  0225 	BCF   0x03,IRP
+004C 0800  0226 	MOVF  INDF,W
+004D 00C7  0227 	MOVWF temp
+004E 0A84  0228 	INCF  FSR,1
+004F 0800  0229 	MOVF  INDF,W
+0050 00C8  0230 	MOVWF temp+1
+           0231 			;						if(temp>0){
+0051 0847  0232 	MOVF  temp,W
+0052 0448  0233 	IORWF temp+1,W
+0053 1903  0234 	BTFSC 0x03,Zero_
+0054 2863  0235 	GOTO  m002
+           0236 			;							temp--;
+0055 03C7  0237 	DECF  temp,1
+0056 0A47  0238 	INCF  temp,W
+0057 1903  0239 	BTFSC 0x03,Zero_
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 5
+
+ADDR CODE  LINE SOURCE
+
+0058 03C8  0240 	DECF  temp+1,1
+           0241 			;							RelayTimers[loop]=temp;
+0059 1003  0242 	BCF   0x03,Carry
+005A 0D46  0243 	RLF   loop,W
+005B 3E3E  0244 	ADDLW .62
+005C 0084  0245 	MOVWF FSR
+005D 1383  0246 	BCF   0x03,IRP
+005E 0847  0247 	MOVF  temp,W
+005F 0080  0248 	MOVWF INDF
+0060 0A84  0249 	INCF  FSR,1
+0061 0848  0250 	MOVF  temp+1,W
+0062 0080  0251 	MOVWF INDF
+           0252 			;						}	
+           0253 			;					}
+0063 0AC6  0254 m002	INCF  loop,1
+0064 2843  0255 	GOTO  m001
+           0256 			;				}
+           0257 			;			}
+           0258 			;		}
+           0259 			;	TMR2IF = 0;
+0065 108C  0260 m003	BCF   0x0C,TMR2IF
+           0261 			;	}
+           0262 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0263 			;// UART Rx FUNCTIONS
+           0264 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0265 			;	if (RCIF ==1 ) {								// Data in UART Rx Buffer
+0066 1E8C  0266 m004	BTFSS 0x0C,RCIF
+0067 28BC  0267 	GOTO  m012
+           0268 			;		RxData =  RxByte();							// read data from UART buffer (also clears UART buffer)
+0068 215E  0269 	CALL  RxByte
+0069 00D9  0270 	MOVWF RxData
+           0271 			;													// check if RxByte is correct (no UART error)
+           0272 			;		if( OERR == 1) {							// OVERRUN ERROR (2 Bytes in FIFO, and other byte lost)
+006A 1C98  0273 	BTFSS 0x18,OERR
+006B 2875  0274 	GOTO  m005
+           0275 			;			RxData = RCREG;
+006C 081A  0276 	MOVF  RCREG,W
+006D 00D9  0277 	MOVWF RxData
+           0278 			;			RxData = RCREG;							// Read twice to clear FIFO
+006E 081A  0279 	MOVF  RCREG,W
+006F 00D9  0280 	MOVWF RxData
+           0281 			;			CREN = 0;								// Clear Error by re-enabling transmission
+0070 1218  0282 	BCF   0x18,CREN
+           0283 			;			CREN=1;
+0071 1618  0284 	BSF   0x18,CREN
+           0285 			;			RedLED=1;	
+0072 1706  0286 	BSF   0x06,RB6
+           0287 			;			ProtocolState=PROTOCOL_ERROR_UARTOVERRUN;	// packet now broken
+0073 30FE  0288 	MOVLW .254
+0074 00DA  0289 	MOVWF ProtocolState
+           0290 			;		}
+           0291 			;		if (FERR == 1) {							// Framing Error.  Stop bit is not = 1.
+0075 1D18  0292 m005	BTFSS 0x18,FERR
+0076 287C  0293 	GOTO  m006
+           0294 			;			RxData = RCREG;
+0077 081A  0295 	MOVF  RCREG,W
+0078 00D9  0296 	MOVWF RxData
+           0297 			;			GreenLED=1;
+0079 1786  0298 	BSF   0x06,RB7
+           0299 			;			ProtocolState=PROTOCOL_ERROR_UARTFRAMING;   // packet broken
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 6
+
+ADDR CODE  LINE SOURCE
+
+007A 30FF  0300 	MOVLW .255
+007B 00DA  0301 	MOVWF ProtocolState
+           0302 			;		}
+           0303 			;		// Otherwise Rx's character is okay and we can proceed	
+           0304 			;	
+           0305 			;		if(ProtocolState == PROTOCOL_WAIT_START){
+007C 08DA  0306 m006	MOVF  ProtocolState,1
+007D 1903  0307 	BTFSC 0x03,Zero_
+           0308 			;			GreenLED=1;
+007E 1786  0309 	BSF   0x06,RB7
+           0310 			;		}		
+           0311 			;		if((RxData == COMMAND_SNAP_SYNC)&&(Foo != 0)) {
+007F 0859  0312 	MOVF  RxData,W
+0080 3A54  0313 	XORLW .84
+0081 1D03  0314 	BTFSS 0x03,Zero_
+0082 2886  0315 	GOTO  m007
+0083 08DB  0316 	MOVF  Foo,1
+0084 1D03  0317 	BTFSS 0x03,Zero_
+           0318 			;			RedLED=1;
+0085 1706  0319 	BSF   0x06,RB6
+           0320 			;		}		
+           0321 			;	
+           0322 			;		if((ProtocolState == PROTOCOL_WAIT_START) && (RxData == COMMAND_SNAP_SYNC)) {	// check if byte = snyc byte, while waiting for snyc
+0086 08DA  0323 m007	MOVF  ProtocolState,1
+0087 1D03  0324 	BTFSS 0x03,Zero_
+0088 2897  0325 	GOTO  m008
+0089 0859  0326 	MOVF  RxData,W
+008A 3A54  0327 	XORLW .84
+008B 1D03  0328 	BTFSS 0x03,Zero_
+008C 2897  0329 	GOTO  m008
+           0330 			;			PacketBytes = 0;						// reset PacketByte (and RxBuffer index) counter
+008D 01D8  0331 	CLRF  PacketBytes
+           0332 			;			ProtocolState=PROTOCOL_GATHER_SNAP;		// advance ProtocolState
+008E 3001  0333 	MOVLW .1
+008F 00DA  0334 	MOVWF ProtocolState
+           0335 			;			RxBuffer[PacketBytes]=RxData;			// place sync byte in index 0 in the RxBuffer
+0090 3049  0336 	MOVLW .73
+0091 0758  0337 	ADDWF PacketBytes,W
+0092 0084  0338 	MOVWF FSR
+0093 1383  0339 	BCF   0x03,IRP
+0094 0859  0340 	MOVF  RxData,W
+0095 0080  0341 	MOVWF INDF
+           0342 			;			PacketBytes++;
+0096 0AD8  0343 	INCF  PacketBytes,1
+           0344 			;			//GreenLED=1;
+           0345 			;		}
+           0346 			;
+           0347 			;		if(PacketBytes < RxBufferLength){
+0097 300E  0348 m008	MOVLW .14
+0098 0258  0349 	SUBWF PacketBytes,W
+0099 1803  0350 	BTFSC 0x03,Carry
+009A 28B1  0351 	GOTO  m010
+           0352 			;			if(ProtocolState==PROTOCOL_GATHER_SNAP){
+009B 0B5A  0353 	DECFSZ ProtocolState,W
+009C 28B1  0354 	GOTO  m010
+           0355 			;				RxBuffer[PacketBytes] = RxData;
+009D 3049  0356 	MOVLW .73
+009E 0758  0357 	ADDWF PacketBytes,W
+009F 0084  0358 	MOVWF FSR
+00A0 1383  0359 	BCF   0x03,IRP
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 7
+
+ADDR CODE  LINE SOURCE
+
+00A1 0859  0360 	MOVF  RxData,W
+00A2 0080  0361 	MOVWF INDF
+           0362 			;				PacketBytes++;
+00A3 0AD8  0363 	INCF  PacketBytes,1
+           0364 			;				if(PacketBytes==PacketLength){
+00A4 0858  0365 	MOVF  PacketBytes,W
+00A5 0657  0366 	XORWF PacketLength,W
+00A6 1D03  0367 	BTFSS 0x03,Zero_
+00A7 28AB  0368 	GOTO  m009
+           0369 			;						ProtocolState=PROTOCOL_WAIT_START;
+00A8 01DA  0370 	CLRF  ProtocolState
+           0371 			;						GreenLED=0;
+00A9 1386  0372 	BCF   0x06,RB7
+           0373 			;						RedLED=0;
+00AA 1306  0374 	BCF   0x06,RB6
+           0375 			;				}
+           0376 			;				if(PacketBytes==3){
+00AB 0858  0377 m009	MOVF  PacketBytes,W
+00AC 3A03  0378 	XORLW .3
+00AD 1D03  0379 	BTFSS 0x03,Zero_
+00AE 28B1  0380 	GOTO  m010
+           0381 			;					//TO DO!! Calculate packet length
+           0382 			;					PacketLength=14;
+00AF 300E  0383 	MOVLW .14
+00B0 00D7  0384 	MOVWF PacketLength
+           0385 			;				}	
+           0386 			;				//if(PacketBytes==PacketLength){
+           0387 			;				// calculate checksum
+           0388 			;				// compare checksum
+           0389 			;				// respond with nack if required OR
+           0390 			;				// reset with no response		
+           0391 			;			}	
+           0392 			;		}
+           0393 			;		
+           0394 			;		if((PacketBytes >= PacketLength)||(ProtocolState == PROTOCOL_ERROR_UARTOVERRUN) || (ProtocolState == PROTOCOL_ERROR_UARTFRAMING)) {
+00B1 0857  0395 m010	MOVF  PacketLength,W
+00B2 0258  0396 	SUBWF PacketBytes,W
+00B3 1803  0397 	BTFSC 0x03,Carry
+00B4 28BB  0398 	GOTO  m011
+00B5 085A  0399 	MOVF  ProtocolState,W
+00B6 3AFE  0400 	XORLW .254
+00B7 1903  0401 	BTFSC 0x03,Zero_
+00B8 28BB  0402 	GOTO  m011
+00B9 0A5A  0403 	INCF  ProtocolState,W
+00BA 1903  0404 	BTFSC 0x03,Zero_
+           0405 			;			ProtocolState=PROTOCOL_WAIT_START;
+00BB 01DA  0406 m011	CLRF  ProtocolState
+           0407 			;			// replace with PROTOCOL_ERROR_OVERFLOW
+           0408 			;		}
+           0409 			;	}
+           0410 			;   	FSR = FSRTemp;
+00BC 0838  0411 m012	MOVF  FSRTemp,W
+00BD 0084  0412 	MOVWF FSR
+           0413 			;   	int_restore_registers
+00BE 0E20  0414 	SWAPF svrSTATUS,W
+00BF 0083  0415 	MOVWF STATUS
+00C0 0EF0  0416 	SWAPF svrWREG,1
+00C1 0E70  0417 	SWAPF svrWREG,W
+           0418 			;}
+00C2 0009  0419 	RETFIE
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 8
+
+ADDR CODE  LINE SOURCE
+
+           0420 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0421 			;// MAIN ROUTINE
+           0422 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0423 			;void main(void) {
+           0424 main
+           0425 			;
+           0426 			;char i =0;
+00C3 1283  0427 	BCF   0x03,RP0
+00C4 1303  0428 	BCF   0x03,RP1
+00C5 01A4  0429 	CLRF  i
+           0430 			;char StartFlag =0;
+00C6 01A5  0431 	CLRF  StartFlag
+           0432 			;char text =0;
+00C7 01A6  0433 	CLRF  text
+           0434 			;	
+           0435 			;	InitialiseGlobals();
+00C8 211E  0436 	CALL  InitialiseGlobals
+           0437 			;	InitialiseHardware();
+00C9 1683  0438 	BSF   0x03,RP0
+00CA 20F7  0439 	CALL  InitialiseHardware
+           0440 			;
+           0441 			;	Foo=0;
+00CB 01DB  0442 	CLRF  Foo
+           0443 			;
+           0444 			;	//RxBuffer[0]=text;
+           0445 			;
+           0446 			;
+           0447 			;	while(StartupFlag){
+00CC 08BD  0448 m013	MOVF  StartupFlag,1
+00CD 1903  0449 	BTFSC 0x03,Zero_
+00CE 28E6  0450 	GOTO  m015
+           0451 			;		GreenLED = 1;
+00CF 1786  0452 	BSF   0x06,RB7
+           0453 			;		RedLED = 0;
+00D0 1306  0454 	BCF   0x06,RB6
+           0455 			;		for(i=0;i<4;i++){
+00D1 01A4  0456 	CLRF  i
+00D2 3004  0457 m014	MOVLW .4
+00D3 0224  0458 	SUBWF i,W
+00D4 1803  0459 	BTFSC 0x03,Carry
+00D5 28CC  0460 	GOTO  m013
+           0461 			;			InputStates[i]=1;
+00D6 3060  0462 	MOVLW .96
+00D7 0724  0463 	ADDWF i,W
+00D8 0084  0464 	MOVWF FSR
+00D9 1383  0465 	BCF   0x03,IRP
+00DA 3001  0466 	MOVLW .1
+00DB 0080  0467 	MOVWF INDF
+           0468 			;			RelayTimers[i]=0;
+00DC 1003  0469 	BCF   0x03,Carry
+00DD 0D24  0470 	RLF   i,W
+00DE 3E3E  0471 	ADDLW .62
+00DF 0084  0472 	MOVWF FSR
+00E0 1383  0473 	BCF   0x03,IRP
+00E1 0180  0474 	CLRF  INDF
+00E2 0A84  0475 	INCF  FSR,1
+00E3 0180  0476 	CLRF  INDF
+           0477 			;		}
+00E4 0AA4  0478 	INCF  i,1
+00E5 28D2  0479 	GOTO  m014
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 9
+
+ADDR CODE  LINE SOURCE
+
+           0480 			;	}
+           0481 			;
+           0482 			;	GreenLED=0;
+00E6 1386  0483 m015	BCF   0x06,RB7
+           0484 			;	ConfigSerial();
+00E7 1683  0485 	BSF   0x03,RP0
+00E8 2149  0486 	CALL  ConfigSerial
+           0487 			;
+           0488 			;	while (1) {
+           0489 			;		CheckStates();
+00E9 2168  0490 m016	CALL  CheckStates
+           0491 			;		SetRelays();
+00EA 2192  0492 	CALL  SetRelays
+           0493 			;/*		
+           0494 			;		if(StartFlag==0){
+           0495 			;			for(i=0;i<20;i++){			
+           0496 			;				text=ReadEEPROM(i);
+           0497 			;				RxBuffer[i]=text;
+           0498 			;			}
+           0499 			;			StartFlag=1;
+           0500 			;			PacketBytes=RxBufferLength;
+           0501 			;		}
+           0502 			;*/
+           0503 			;		if(PacketBytes == RxBufferLength){
+00EB 0858  0504 	MOVF  PacketBytes,W
+00EC 3A0E  0505 	XORLW .14
+00ED 1D03  0506 	BTFSS 0x03,Zero_
+00EE 28F4  0507 	GOTO  m017
+           0508 			;			SendString(&RxBuffer[RxBufferLength]);	
+00EF 3057  0509 	MOVLW .87
+00F0 00A7  0510 	MOVWF Buffer
+00F1 21AF  0511 	CALL  SendString
+           0512 			;			PacketBytes=0;
+00F2 01D8  0513 	CLRF  PacketBytes
+           0514 			;			loop=0;
+00F3 01C6  0515 	CLRF  loop
+           0516 			;		}
+           0517 			;
+           0518 			;		TxByte(ProtocolState);
+00F4 085A  0519 m017	MOVF  ProtocolState,W
+00F5 2157  0520 	CALL  TxByte
+           0521 			;		
+           0522 			;/*
+           0523 			;		for(i=0;i<128;i++) {
+           0524 			;			WriteEEPROM(i,i+64);
+           0525 			;		}	
+           0526 			;	*/
+           0527 			;	}	
+00F6 28E9  0528 	GOTO  m016
+           0529 			;}// end main()
+           0530 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0531 			;
+           0532 			;void InitialiseHardware(void) {
+           0533 InitialiseHardware
+           0534 			;  	TRISA  = 0b00111111; 				// PORTA (0 = OUTPUT)
+00F7 303F  0535 	MOVLW .63
+00F8 0085  0536 	MOVWF TRISA
+           0537 			;	PORTA  = 0b00000000;				// Initialise PORTA
+00F9 1283  0538 	BCF   0x03,RP0
+00FA 0185  0539 	CLRF  PORTA
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 10
+
+ADDR CODE  LINE SOURCE
+
+           0540 			;	TRISB  = 0b00000000;      			// PORTB (0 = OUTPUT), RB1, RB2 = Serial coms, set as inputs.  Coms hardware asserts outputs as required
+                   
+00FB 1683  0541 	BSF   0x03,RP0
+00FC 0186  0542 	CLRF  TRISB
+           0543 			;	PORTB  = 0b00000000;				// Initialise PORTB
+00FD 1283  0544 	BCF   0x03,RP0
+00FE 0186  0545 	CLRF  PORTB
+           0546 			;	OPTION = 0b10001000;   				// No weak pull ups, prescaler assigned to WDT
+00FF 3088  0547 	MOVLW .136
+0100 1683  0548 	BSF   0x03,RP0
+0101 0081  0549 	MOVWF OPTION_REG
+           0550 			;   	INTCON = 0b11000000;				// TMR2 used to provide 1ms ticks.
+0102 30C0  0551 	MOVLW .192
+0103 008B  0552 	MOVWF INTCON
+           0553 			;	CMCON  = 0b00000111;				// Enable RA0:3 as Digital Inputs
+0104 3007  0554 	MOVLW .7
+0105 1283  0555 	BCF   0x03,RP0
+0106 009F  0556 	MOVWF CMCON
+           0557 			;	PCON   = 0b00001000;				// Set internal osciallator to 4MHz
+0107 3008  0558 	MOVLW .8
+0108 1683  0559 	BSF   0x03,RP0
+0109 008E  0560 	MOVWF PCON
+           0561 			;	T2CON  = 0b00001101;				// TMR2 on, prescale = 1:4, and postscale = 1:2  (8us ticks with 4MHz oscillator)
+010A 300D  0562 	MOVLW .13
+010B 1283  0563 	BCF   0x03,RP0
+010C 0092  0564 	MOVWF T2CON
+           0565 			;	PIE1   = 0b00000010;				// Bit 1 enables TMR2 = PR2 interface
+010D 3002  0566 	MOVLW .2
+010E 1683  0567 	BSF   0x03,RP0
+010F 008C  0568 	MOVWF PIE1
+           0569 			;	RCIE = 1;							// enable UART Rx Interrupts
+0110 168C  0570 	BSF   0x8C,RCIE
+           0571 			;	
+           0572 			;	PIR1   = 0b00000000;				// Read this to see if TMR2 = PR2 flag is set
+0111 1283  0573 	BCF   0x03,RP0
+0112 018C  0574 	CLRF  PIR1
+           0575 			;	PR2 = 250;							// TMR2 match value, for 2ms ticks
+0113 30FA  0576 	MOVLW .250
+0114 1683  0577 	BSF   0x03,RP0
+0115 0092  0578 	MOVWF PR2
+           0579 			;	
+           0580 			;	
+           0581 			;
+           0582 			;	StartupFlag=1;
+0116 3001  0583 	MOVLW .1
+0117 1283  0584 	BCF   0x03,RP0
+0118 00BD  0585 	MOVWF StartupFlag
+           0586 			;	
+           0587 			;	Relay0 = 0;
+0119 1286  0588 	BCF   0x06,RB5
+           0589 			;	Relay1 = 0;
+011A 1206  0590 	BCF   0x06,RB4
+           0591 			;	Relay2 = 0;
+011B 1385  0592 	BCF   0x05,RA7
+           0593 			;	Relay3 = 0;
+011C 1305  0594 	BCF   0x05,RA6
+           0595 			;
+           0596 			;}
+011D 0008  0597 	RETURN
+           0598 			;
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 11
+
+ADDR CODE  LINE SOURCE
+
+           0599 			;
+           0600 			;void InitialiseGlobals(void) {
+           0601 InitialiseGlobals
+           0602 			;	T2ms = 0;							// Reset Timers
+011E 01B9  0603 	CLRF  T2ms
+           0604 			;	T10ms = 0;
+011F 01BA  0605 	CLRF  T10ms
+           0606 			;	T100ms = 0;
+0120 01BB  0607 	CLRF  T100ms
+           0608 			;	SecondsFlag=0;
+0121 01BC  0609 	CLRF  SecondsFlag
+           0610 			;	loop=0;
+0122 01C6  0611 	CLRF  loop
+           0612 			;	RxData=0;
+0123 01D9  0613 	CLRF  RxData
+           0614 			;	PacketBytes = 0;
+0124 01D8  0615 	CLRF  PacketBytes
+           0616 			;	//ProtocolState=0;
+           0617 			;	PacketLength=RxBufferLength;		//initialising to zero is bad here
+0125 300E  0618 	MOVLW .14
+0126 00D7  0619 	MOVWF PacketLength
+           0620 			;	//Foo = 0;
+           0621 			;}
+0127 0008  0622 	RETURN
+           0623 			;
+           0624 			;
+           0625 			;
+           0626 			;
+           0627 			;void debounce(char input, char *state, char *counter) {
+           0628 debounce
+           0629 			;	if ((*state) != input) {
+0128 1383  0630 	BCF   0x03,IRP
+0129 0822  0631 	MOVF  state,W
+012A 0084  0632 	MOVWF FSR
+012B 0800  0633 	MOVF  INDF,W
+012C 0621  0634 	XORWF input,W
+012D 1903  0635 	BTFSC 0x03,Zero_
+012E 2944  0636 	GOTO  m018
+           0637 			;   		(*counter)++;
+012F 1383  0638 	BCF   0x03,IRP
+0130 0823  0639 	MOVF  counter,W
+0131 0084  0640 	MOVWF FSR
+0132 0A80  0641 	INCF  INDF,1
+           0642 			;		if ((*counter) >= MAX_DEBOUNCE_COUNT) {
+0133 1383  0643 	BCF   0x03,IRP
+0134 0823  0644 	MOVF  counter,W
+0135 0084  0645 	MOVWF FSR
+0136 300A  0646 	MOVLW .10
+0137 0200  0647 	SUBWF INDF,W
+0138 1C03  0648 	BTFSS 0x03,Carry
+0139 2948  0649 	GOTO  m019
+           0650 			;			(*counter) = 0;
+013A 1383  0651 	BCF   0x03,IRP
+013B 0823  0652 	MOVF  counter,W
+013C 0084  0653 	MOVWF FSR
+013D 0180  0654 	CLRF  INDF
+           0655 			;			(*state) = input;
+013E 1383  0656 	BCF   0x03,IRP
+013F 0822  0657 	MOVF  state,W
+0140 0084  0658 	MOVWF FSR
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 12
+
+ADDR CODE  LINE SOURCE
+
+0141 0821  0659 	MOVF  input,W
+0142 0080  0660 	MOVWF INDF
+           0661 			;		}
+           0662 			;	} else {
+0143 2948  0663 	GOTO  m019
+           0664 			;		(*counter) = 0;
+0144 1383  0665 m018	BCF   0x03,IRP
+0145 0823  0666 	MOVF  counter,W
+0146 0084  0667 	MOVWF FSR
+0147 0180  0668 	CLRF  INDF
+           0669 			;	}
+           0670 			;}
+0148 0008  0671 m019	RETURN
+           0672 			;
+           0673 			;void ConfigSerial(){
+           0674 ConfigSerial
+           0675 			;	
+           0676 			;	TRISB = TRISB|0b0000.0110;		// RB1, RB2 inputs - UART sets outputs as needed
+0149 3006  0677 	MOVLW .6
+014A 0486  0678 	IORWF TRISB,1
+           0679 			;	SPBRG = 0x19;					// 9600 baud at 4MHz (9615 baud exactly) - HIGH SPEED BAUD RATE GENERATOR
+014B 3019  0680 	MOVLW .25
+014C 0099  0681 	MOVWF SPBRG
+           0682 			;	TXSTA = 0b0010.0100;			// Enable asynch Tx mode
+014D 3024  0683 	MOVLW .36
+014E 0098  0684 	MOVWF TXSTA
+           0685 			;
+           0686 			;	SPEN = 1;						// Turn UART on
+014F 1283  0687 	BCF   0x03,RP0
+0150 1798  0688 	BSF   0x18,SPEN
+           0689 			;	CREN = 1;						// Enable Reception
+0151 1618  0690 	BSF   0x18,CREN
+           0691 			;	TXEN = 1;						// Enable Transmission
+0152 1683  0692 	BSF   0x03,RP0
+0153 1698  0693 	BSF   0x98,TXEN
+           0694 			;
+           0695 			;	TxCtrl = TxActive;				// Turn on 485 
+0154 1283  0696 	BCF   0x03,RP0
+0155 1586  0697 	BSF   0x06,RB3
+           0698 			;} 
+0156 0008  0699 	RETURN
+           0700 			;	
+           0701 			;void TxByte(char data){
+           0702 TxByte
+0157 00B7  0703 	MOVWF data
+           0704 			;
+           0705 			;		TXREG = data;				// stick byte into buffer
+0158 0099  0706 	MOVWF TXREG
+           0707 			;		while(TRMT ==0);			// Wait for Byte to finsih being sent
+0159 1683  0708 	BSF   0x03,RP0
+015A 1C98  0709 m020	BTFSS 0x98,TRMT
+015B 295A  0710 	GOTO  m020
+           0711 			;}
+015C 1283  0712 	BCF   0x03,RP0
+015D 0008  0713 	RETURN
+           0714 			;
+           0715 			;char RxByte(void) {					// read Rx data from UART
+           0716 RxByte
+           0717 			;
+           0718 			;	char text = 0;
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 13
+
+ADDR CODE  LINE SOURCE
+
+015E 01A1  0719 	CLRF  text_2
+           0720 			;	char i = 0;
+015F 01A2  0721 	CLRF  i_2
+           0722 			;	
+           0723 			;		if( OERR ==0 && FERR ==0 ) {
+0160 1898  0724 	BTFSC 0x18,OERR
+0161 2966  0725 	GOTO  m021
+0162 1918  0726 	BTFSC 0x18,FERR
+0163 2966  0727 	GOTO  m021
+           0728 			;			text = RCREG;
+0164 081A  0729 	MOVF  RCREG,W
+0165 00A1  0730 	MOVWF text_2
+           0731 			;			//RedLED=0;
+           0732 			;			//GreenLED=0;
+           0733 			;		}
+           0734 			;	return text;
+0166 0821  0735 m021	MOVF  text_2,W
+0167 0008  0736 	RETURN
+           0737 			;}	 
+           0738 			;
+           0739 			;void CheckStates(){
+           0740 CheckStates
+           0741 			;		// while inputs are active the mapped outputs will also be active, and remain active for their time periods
+           0742 			;		// can't be stuffed setting flags to make time periods absolute!
+           0743 			;		// decrement (if required) timers in timer interrupt routine
+           0744 			;		if(InputStates[0]==INPUT_ACTIVE){
+0168 08E0  0745 	MOVF  InputStates,1
+0169 1D03  0746 	BTFSS 0x03,Zero_
+016A 2974  0747 	GOTO  m022
+           0748 			;			RelayTimers[0]=DOOR_TIME;					// Close Relay 0 for door0 control			
+016B 3001  0749 	MOVLW .1
+016C 00BE  0750 	MOVWF RelayTimers
+016D 01BF  0751 	CLRF  RelayTimers+1
+           0752 			;			RelayTimers[3]=LIGHT_TIME;					// Close Relay 4 for light control
+016E 302C  0753 	MOVLW .44
+016F 00C4  0754 	MOVWF RelayTimers+6
+0170 3001  0755 	MOVLW .1
+0171 00C5  0756 	MOVWF RelayTimers+7
+           0757 			;			T100ms=0;
+0172 01BB  0758 	CLRF  T100ms
+           0759 			;			RedLED=1;
+0173 1706  0760 	BSF   0x06,RB6
+           0761 			;		}
+           0762 			;		if(InputStates[1]==INPUT_ACTIVE){
+0174 08E1  0763 m022	MOVF  InputStates+1,1
+0175 1D03  0764 	BTFSS 0x03,Zero_
+0176 2980  0765 	GOTO  m023
+           0766 			;			RelayTimers[1]=DOOR_TIME;					// Close Relay 1 for  door1 control			
+0177 3001  0767 	MOVLW .1
+0178 00C0  0768 	MOVWF RelayTimers+2
+0179 01C1  0769 	CLRF  RelayTimers+3
+           0770 			;			RelayTimers[3]=LIGHT_TIME;					// Close Relay 4 for light control
+017A 302C  0771 	MOVLW .44
+017B 00C4  0772 	MOVWF RelayTimers+6
+017C 3001  0773 	MOVLW .1
+017D 00C5  0774 	MOVWF RelayTimers+7
+           0775 			;			T100ms=0;
+017E 01BB  0776 	CLRF  T100ms
+           0777 			;			RedLED=1;
+017F 1706  0778 	BSF   0x06,RB6
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 14
+
+ADDR CODE  LINE SOURCE
+
+           0779 			;		}
+           0780 			;		if(InputStates[2] == INPUT_ACTIVE){
+0180 08E2  0781 m023	MOVF  InputStates+2,1
+0181 1D03  0782 	BTFSS 0x03,Zero_
+0182 2988  0783 	GOTO  m024
+           0784 			;			RelayTimers[2] = DOOR_TIME;					
+0183 3001  0785 	MOVLW .1
+0184 00C2  0786 	MOVWF RelayTimers+4
+0185 01C3  0787 	CLRF  RelayTimers+5
+           0788 			;			T100ms=0;
+0186 01BB  0789 	CLRF  T100ms
+           0790 			;			RedLED=1;
+0187 1706  0791 	BSF   0x06,RB6
+           0792 			;		}
+           0793 			;		if(InputStates[3] == INPUT_ACTIVE) {	
+0188 08E3  0794 m024	MOVF  InputStates+3,1
+0189 1D03  0795 	BTFSS 0x03,Zero_
+018A 2991  0796 	GOTO  m025
+           0797 			;			RelayTimers[3] = LIGHT_TIME;
+018B 302C  0798 	MOVLW .44
+018C 00C4  0799 	MOVWF RelayTimers+6
+018D 3001  0800 	MOVLW .1
+018E 00C5  0801 	MOVWF RelayTimers+7
+           0802 			;			T100ms=0;
+018F 01BB  0803 	CLRF  T100ms
+           0804 			;			RedLED=1;
+0190 1706  0805 	BSF   0x06,RB6
+           0806 			;		}
+           0807 			;}
+0191 0008  0808 m025	RETURN
+           0809 			;
+           0810 			;
+           0811 			;void SetRelays(){
+           0812 SetRelays
+           0813 			;
+           0814 			;		if(RelayTimers[0]>0){
+0192 083E  0815 	MOVF  RelayTimers,W
+0193 043F  0816 	IORWF RelayTimers+1,W
+0194 1903  0817 	BTFSC 0x03,Zero_
+0195 2998  0818 	GOTO  m026
+           0819 			;			Relay0=1;
+0196 1686  0820 	BSF   0x06,RB5
+           0821 			;		}
+           0822 			;		else {
+0197 2999  0823 	GOTO  m027
+           0824 			;			Relay0=0;
+0198 1286  0825 m026	BCF   0x06,RB5
+           0826 			;		}
+           0827 			;		if(RelayTimers[1]>0){
+0199 0840  0828 m027	MOVF  RelayTimers+2,W
+019A 0441  0829 	IORWF RelayTimers+3,W
+019B 1903  0830 	BTFSC 0x03,Zero_
+019C 299F  0831 	GOTO  m028
+           0832 			;			Relay1=1;
+019D 1606  0833 	BSF   0x06,RB4
+           0834 			;		}
+           0835 			;		else {
+019E 29A0  0836 	GOTO  m029
+           0837 			;			Relay1=0;
+019F 1206  0838 m028	BCF   0x06,RB4
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 15
+
+ADDR CODE  LINE SOURCE
+
+           0839 			;		}
+           0840 			;		if(RelayTimers[2]>0){
+01A0 0842  0841 m029	MOVF  RelayTimers+4,W
+01A1 0443  0842 	IORWF RelayTimers+5,W
+01A2 1903  0843 	BTFSC 0x03,Zero_
+01A3 29A6  0844 	GOTO  m030
+           0845 			;			Relay2=1;
+01A4 1785  0846 	BSF   0x05,RA7
+           0847 			;		}
+           0848 			;		else {
+01A5 29A7  0849 	GOTO  m031
+           0850 			;			Relay2=0;
+01A6 1385  0851 m030	BCF   0x05,RA7
+           0852 			;		}
+           0853 			;		if(RelayTimers[3]>0){
+01A7 0844  0854 m031	MOVF  RelayTimers+6,W
+01A8 0445  0855 	IORWF RelayTimers+7,W
+01A9 1903  0856 	BTFSC 0x03,Zero_
+01AA 29AD  0857 	GOTO  m032
+           0858 			;			Relay3=1;
+01AB 1705  0859 	BSF   0x05,RA6
+           0860 			;		}
+           0861 			;		else {
+01AC 29AE  0862 	GOTO  m033
+           0863 			;			Relay3=0;
+01AD 1305  0864 m032	BCF   0x05,RA6
+           0865 			;		}
+           0866 			;}
+01AE 0008  0867 m033	RETURN
+           0868 			;
+           0869 			;
+           0870 			;void SendString(char *Buffer[RxBufferLength]) {
+           0871 SendString
+           0872 			;
+           0873 			;char i =0;
+01AF 01B5  0874 	CLRF  i_3
+           0875 			;char text =0;	
+01B0 01B6  0876 	CLRF  text_3
+           0877 			;	
+           0878 			;	for(i=0;i<RxBufferLength;i++){		// prepare to send data packet
+01B1 01B5  0879 	CLRF  i_3
+01B2 300E  0880 m034	MOVLW .14
+01B3 0235  0881 	SUBWF i_3,W
+01B4 1803  0882 	BTFSC 0x03,Carry
+01B5 29CB  0883 	GOTO  m037
+           0884 			;		while(TXIF == 0);				// Wait for Tx buffer to be empty
+01B6 1E0C  0885 m035	BTFSS 0x0C,TXIF
+01B7 29B6  0886 	GOTO  m035
+           0887 			;		text = RxBuffer[i];				// Put ito RAM to speed things up (why keep reading the Array?)  Does this do speed improvement?
+                   
+01B8 3049  0888 	MOVLW .73
+01B9 0735  0889 	ADDWF i_3,W
+01BA 0084  0890 	MOVWF FSR
+01BB 1383  0891 	BCF   0x03,IRP
+01BC 0800  0892 	MOVF  INDF,W
+01BD 00B6  0893 	MOVWF text_3
+           0894 			;		if(text != 0){	
+01BE 08B6  0895 	MOVF  text_3,1
+01BF 1903  0896 	BTFSC 0x03,Zero_
+01C0 29C8  0897 	GOTO  m036
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 16
+
+ADDR CODE  LINE SOURCE
+
+           0898 			;			RxCtrl = !RxActive;			// Disable Rs485 Rx
+01C1 1406  0899 	BSF   0x06,RB0
+           0900 			;			TxByte(text);				// Transmit buffer contents
+01C2 2157  0901 	CALL  TxByte
+           0902 			;			RxBuffer[i]=0;
+01C3 3049  0903 	MOVLW .73
+01C4 0735  0904 	ADDWF i_3,W
+01C5 0084  0905 	MOVWF FSR
+01C6 1383  0906 	BCF   0x03,IRP
+01C7 0180  0907 	CLRF  INDF
+           0908 			;		}
+           0909 			;		//while(TRMT ==0);				// Wait for Byte to finsih being sent
+           0910 			;		RxCtrl = RxActive;				// Enable RS485 Rx
+01C8 1006  0911 m036	BCF   0x06,RB0
+           0912 			;	}	
+01C9 0AB5  0913 	INCF  i_3,1
+01CA 29B2  0914 	GOTO  m034
+           0915 			;}
+01CB 0008  0916 m037	RETURN
+           0917 			;
+           0918 			;// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0919 			;// EEPROM data access (PIC16F627A Version)
+           0920 			;// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0921 			;char ReadEEPROM(char address) {
+           0922 ReadEEPROM
+01CC 00FF  0923 	MOVWF address
+           0924 			;   	char data = 0;
+01CD 01FF  0925 	CLRF  data_2
+           0926 			;   
+           0927 			;	EEADR = address;        // 1. Write address to EEADR
+01CE 087F  0928 	MOVF  address,W
+01CF 1683  0929 	BSF   0x03,RP0
+01D0 1303  0930 	BCF   0x03,RP1
+01D1 009B  0931 	MOVWF EEADR
+           0932 			;//   	EEPGD = 0;              // 2. Clear EEPGD bit to point to EEPROM data (not Needed 16F627A)
+           0933 			;   	RD = 1;                 // 3. Set the RD bit to start the read
+01D2 141C  0934 	BSF   0x9C,RD
+           0935 			;   	data = EEDATA;          // 4. Read the data from EEDATA
+01D3 081A  0936 	MOVF  EEDATA,W
+01D4 00FF  0937 	MOVWF data_2
+           0938 			;   	return data;
+01D5 0008  0939 	RETURN
+           0940 			;}
+           0941 			;
+           0942 			;void WriteEEPROM(char address, char data) {
+           0943 WriteEEPROM
+01D6 00FF  0944 	MOVWF data_3
+           0945 			;
+           0946 			;	EEADR = address;
+01D7 087F  0947 	MOVF  address_2,W
+01D8 1683  0948 	BSF   0x03,RP0
+01D9 1303  0949 	BCF   0x03,RP1
+01DA 009B  0950 	MOVWF EEADR
+           0951 			;	EEDATA = data;
+01DB 087F  0952 	MOVF  data_3,W
+01DC 009A  0953 	MOVWF EEDATA
+           0954 			;	
+           0955 			;	GIE = 0;				// Disable interrupts
+01DD 138B  0956 	BCF   0x0B,GIE
+           0957 			;	WREN = 1;				// Enable EEPROM write
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 17
+
+ADDR CODE  LINE SOURCE
+
+01DE 151C  0958 	BSF   0x9C,WREN
+           0959 			;	EECON2 = 0x55;
+01DF 3055  0960 	MOVLW .85
+01E0 009D  0961 	MOVWF EECON2
+           0962 			;	EECON2 = 0xAA;			
+01E1 30AA  0963 	MOVLW .170
+01E2 009D  0964 	MOVWF EECON2
+           0965 			;	WR = 1;					// EEPROM write sequence initiated
+01E3 149C  0966 	BSF   0x9C,WR
+           0967 			;	while(WR == 1);			// Wait for write to complete
+01E4 189C  0968 m038	BTFSC 0x9C,WR
+01E5 29E4  0969 	GOTO  m038
+           0970 			;	GIE = 1;				// Re-enable interrupts
+01E6 178B  0971 	BSF   0x0B,GIE
+           0972 			;	
+           0973 			;}
+01E7 0008  0974 	RETURN
+           0975 
+     0000  0976 	ORG 0x2100
+2100 000D  0977 	DATA 000DH
+2101 000A  0978 	DATA 000AH
+2102 0053  0979 	DATA 0053H
+2103 0049  0980 	DATA 0049H
+2104 004D  0981 	DATA 004DH
+2105 0043  0982 	DATA 0043H
+2106 004F  0983 	DATA 004FH
+2107 0020  0984 	DATA 0020H
+2108 0049  0985 	DATA 0049H
+2109 004F  0986 	DATA 004FH
+210A 000D  0987 	DATA 000DH
+210B 000A  0988 	DATA 000AH
+210C 0056  0989 	DATA 0056H
+210D 0065  0990 	DATA 0065H
+210E 0072  0991 	DATA 0072H
+210F 0020  0992 	DATA 0020H
+2110 0030  0993 	DATA 0030H
+2111 002E  0994 	DATA 002EH
+2112 0030  0995 	DATA 0030H
+2113 0030  0996 	DATA 0030H
+     0000  0997 	ORG 0x2007
+2007 3F58  0998 	DATA 3F58H
+     0000  0999 	END
+     0000  1000 
+     0000  1001 
+     0000  1002 ; *** KEY INFO ***
+     0000  1003 
+     0000  1004 ; 0x00F7   39 word(s)  3 % : InitialiseHardware
+     0000  1005 ; 0x011E   10 word(s)  0 % : InitialiseGlobals
+     0000  1006 ; 0x0128   33 word(s)  3 % : debounce
+     0000  1007 ; 0x0149   14 word(s)  1 % : ConfigSerial
+     0000  1008 ; 0x0157    7 word(s)  0 % : TxByte
+     0000  1009 ; 0x015E   10 word(s)  0 % : RxByte
+     0000  1010 ; 0x0168   42 word(s)  4 % : CheckStates
+     0000  1011 ; 0x0192   29 word(s)  2 % : SetRelays
+     0000  1012 ; 0x01AF   29 word(s)  2 % : SendString
+     0000  1013 ; 0x01CC   10 word(s)  0 % : ReadEEPROM
+     0000  1014 ; 0x01D6   18 word(s)  1 % : WriteEEPROM
+     0000  1015 ; 0x0004  191 word(s) 18 % : IntHandler
+     0000  1016 ; 0x00C3   52 word(s)  5 % : main
+     0000  1017 
+CC5X Version 3.2,   File: SIMCO_IO.C          22. Dec 2010  17:16   Page 18
+
+ADDR CODE  LINE SOURCE
+
+     0000  1018 ; RAM usage: 73 bytes (25 local), 151 bytes free
+     0000  1019 ; Maximum call level: 2 (+2 for interrupt)
+     0000  1020 ; Total of 485 code words (47 %)

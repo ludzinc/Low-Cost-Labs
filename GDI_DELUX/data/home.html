@@ -5,27 +5,19 @@
   <meta charset="utf-8">
   <title>LCL: Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="stylesheet" href="theme/bootstrap.css" media="screen">
+<!-- <link rel="stylesheet" href="theme/min.css" media="screen"> -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="bootstrap/bootstrap.min.js"></script>
-  <style>
-  .btn-default:active{
-      -ms-transform: scale(0.9); /* IE 9 */
-      -webkit-transform: scale(0.9); /* Safari */
-      transform: scale(0.9);
-      transition,0.1s ease;
-  }
-  </style>
 
   <script>
     var thisInput = "";
 
     function requestIO(selectButton, thisType) {
       thisInput = thisType + selectButton;
-      console.log("thisInput is", thisInput)
-      document.getElementById(thisInput).style.backgroundColor = "#000000";
+      console.log("thisInput is", thisInput);
+      document.getElementById(thisInput).style.backgroundImage = 'linear-gradient(#020202, #101112 40%, #191b1d)';
       var rbutton = setTimeout(buttonReset, 500);
       request = new XMLHttpRequest();
       requestData = "output_" + selectButton;
@@ -37,15 +29,15 @@
     function buttonReset() {
       console.log("Resetting focus: " + thisInput);
       document.getElementById(thisInput).blur();
-      // location.reload(); // ugly ugly hack - fix focus on last pressed button instead??
+      document.getElementById(thisInput).style.backgroundImage = 'linear-gradient(#484e55, #3a3f44 60%, #313539)';
     }
   </script>
   <script language="javascript" type="text/javascript">
     //**************************************************************************
     // setup Websockets
     //**************************************************************************
-    // var wsUri = 'ws://' + location.hostname + ':81/';
-    var wsUri = 'ws://192.168.1.116:81/';
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // var wsUri = 'ws://192.168.1.116:81/';
     // var wsUri = 'ws://localhost:80/';
     var output;
     var echo = "";
@@ -119,8 +111,14 @@
         processButtons(jsonMessage);
         document.getElementById("pageStatus").style.visibility = "hidden";
       } else if (jsonMessage.echo == "configTemperature") {
-        // processTemperature(jsonMessage);
-        document.getElementById("showTemp").innerHTML = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept) + "&#xb0;" + jsonMessage.mode;
+        var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept) ;
+        console.log("Temperature after calibration is: ", displayTemperature);
+        console.log("jsonMessage.mode = ", jsonMessage.mode);
+        if(jsonMessage.mode == "F"){
+          displayTemperature = (displayTemperature * (9/5) + 32);
+          console.log("Temperature after conversion is: ", displayTemperature);
+        }
+        document.getElementById("showTemp").innerHTML = displayTemperature + "&#xb0;" + jsonMessage.mode;
         document.getElementById("showTemp").style.display = "block";
       } else {
         console.log("ERROR: Unknown message recieved.")
@@ -149,8 +147,6 @@
         }
         if ((jsonData.buttonMode[i]) == 1) {
           console.log("option to change look of light button here.  Do later.");
-          // set border to yellow, text to yellow
-          document.getElementById('b'+(i+1)).style.borderColor = "khaki";
         }
       }
     }

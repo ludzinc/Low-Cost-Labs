@@ -1,0 +1,204 @@
+
+# 1 "C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C"
+
+
+
+
+
+#pragma origin = 0x0004
+#pragma config = 0b0011.1111.0101.1000
+
+# 33
+void InitialiseHardware(void);
+void InitialiseGlobals(void);
+void DisplayDigit(char DigitCounter);
+void Dec2BCD(void);
+void debounce(char test, char *state, char *counter);
+
+char FSRTemp;
+char T2ms;
+char T10ms;
+char T100ms;
+
+char DigitCounter;
+uns16 DispValue;
+char Digit[4];
+char SecondsFlag;
+char StartButtonState;
+char StartButtonPrev;
+char StartButtonCounter;
+char StopButtonState;
+char StopButtonPrev;
+char StopButtonCounter;
+char State1;
+
+#pragma codepage 0
+
+# 89
+void main(void) {
+int Seconds =00;
+int Minutes =00;
+char Timing=0;
+char START =0;
+char STOP =0;
+char StartInit =0;
+char StartInitState=0;
+char StartInitCounter=0;
+char StopInit =0;
+char temp =0;
+
+InitialiseHardware();
+InitialiseGlobals();
+
+while (1) {
+debounce(RA0, &StartButtonState, &StartButtonCounter);
+debounce(RA1, &StopButtonState, &StopButtonCounter);
+
+if (StartButtonState != StartButtonPrev) {
+StartButtonPrev = StartButtonState;
+if (State1 == 0) {
+State1 = 1;
+} else {
+State1 = 0;
+}
+}
+if(StopButtonState != StopButtonPrev) {
+StopButtonPrev = StopButtonState;
+State1 = 0;
+DispValue = 0;
+Minutes = 0;
+Seconds = 0;
+SecondsFlag = 0;
+T2ms = 0;
+T10ms = 0;
+T100ms = 0;
+}
+
+if (State1 == 1) {
+if (SecondsFlag) {
+SecondsFlag = 0;
+Seconds++;
+if (Seconds == 60) {
+Minutes++;
+Seconds = 0;
+if(Minutes == 100) {
+Minutes = 0;
+}
+}
+DispValue=Minutes;
+DispValue=DispValue<<8;
+DispValue=DispValue+Seconds;
+}
+}
+}
+}
+
+
+void InitialiseHardware(void) {
+TRISA = 0b00100011;
+PORTA = 0b11011100;
+TRISB = 0b11000000;
+PORTB = 0b00000000;
+OPTION = 0b10001000;
+INTCON = 0b11000000;
+CMCON = 0b00000111;
+PCON = 0b00001000;
+T2CON = 0b00001101;
+PIE1 = 0b00000010;
+PIR1 = 0b00000000;
+PR2 = 250;
+RB5=0;
+
+DispValue = 0xAAAA;
+}
+
+void InitialiseGlobals(void) {
+T2ms = 0;
+T10ms = 0;
+T100ms = 0;
+SecondsFlag=0;
+DigitCounter =0;
+DispValue = 0;
+
+StartButtonState = RA0;
+StartButtonPrev = StartButtonState;
+StartButtonCounter = 0;
+StopButtonState =0;
+StopButtonPrev =0;
+StopButtonCounter =0;
+State1 = 0;
+}
+
+void DisplayDigit(char DigitCounter){
+
+RA6=0;
+RB4=0;
+RA3=0;
+RA2=0;
+
+RA7=0;
+
+
+PORTB=PORTB&0b11110000;
+
+# 199
+switch (DigitCounter) {
+case 0:
+PORTB=PORTB|Digit[0];
+RA6=1;
+break;
+case 1:
+PORTB=PORTB|Digit[1];
+RB4=1;
+break;
+case 2:
+PORTB=PORTB|Digit[2];
+RA3=1;
+RA7=1;
+break;
+case 3:
+PORTB=PORTB|Digit[3];
+RA2=1;
+break;
+default:
+break;
+}
+RB5=1;
+RB5=0;
+}
+
+void Dec2BCD() {
+uns16 temp =0;
+
+# 238
+if (DispValue == 0xAAAA) {
+Digit[0] = 0x0A;
+Digit[1] = 0x0A;
+Digit[2] = 0x0A;
+Digit[3] = 0x0A;
+} else {
+temp=DispValue&0x00FF;
+Digit[0]=temp%10;
+temp=temp/10;
+Digit[1]=temp%10;
+temp=DispValue;
+temp=temp>>8;
+Digit[2]=temp%10;
+temp=temp/10;
+Digit[3]=temp%10;
+temp=DispValue;
+}
+}
+
+void debounce(char test, char *state, char *counter) {
+if ((*state) != test) {
+(*counter)++;
+if ((*counter) >= 10) {
+(*counter) = 0;
+(*state) = test;
+}
+} else {
+(*counter) = 0;
+}
+}
+

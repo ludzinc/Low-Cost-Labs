@@ -14,6 +14,13 @@ html {
 body {
   margin: 0;
 }
+
+body{
+  padding-top:50px}
+
+  .bs-component{
+    position:relative}
+
 article,
 aside,
 details,
@@ -270,6 +277,8 @@ th {
 html {
   font-size: 62.5%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  /* this sets button to black when clicked
+  need to rewset this when focus set elsewhere */
 }
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -2043,6 +2052,7 @@ fieldset[disabled] .btn {
   border-color: #3a3f44;
 }
 .btn-default:hover,
+/* removed above from default slate template */
 .btn-default:focus,
 .btn-default:active,
 .btn-default.active,
@@ -2050,11 +2060,16 @@ fieldset[disabled] .btn {
   color: #ffffff;
   background-color: #272b2e;
   border-color: #1e2023;
+  /* added two lines below from hover state to show button transition when active */
+  /* background-image: -webkit-linear-gradient(#020202, #101112 40%, #191b1d);
+  background-image: linear-gradient(#020202, #101112 40%, #191b1d); */
 }
 .btn-default:active,
 .btn-default.active,
 .open .dropdown-toggle.btn-default {
-  background-image: none;
+  /* background-image: none; */
+  background-image: -webkit-linear-gradient(#020202, #101112 40%, #191b1d);
+  background-image: linear-gradient(#020202, #101112 40%, #191b1d);
 }
 .btn-default.disabled,
 .btn-default[disabled],
@@ -2206,6 +2221,8 @@ fieldset[disabled] .btn-info.active {
   background-color: #f89406;
   border-color: #f89406;
 }
+
+
 .btn-warning:hover,
 .btn-warning:focus,
 .btn-warning:active,
@@ -5833,8 +5850,13 @@ button.close {
   filter: none;
 }
 .btn-default:hover {
+  /* default slate hover */
   background-image: -webkit-linear-gradient(#020202, #101112 40%, #191b1d);
   background-image: linear-gradient(#020202, #101112 40%, #191b1d);
+  /* match normal button view */
+  /* background-image: -webkit-linear-gradient(#484e55, #3a3f44 60%, #313539);
+  background-image: linear-gradient(#484e55, #3a3f44 60%, #313539); */
+  /* comment all out so active class is displayed  only */
   background-repeat: no-repeat;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff020202', endColorstr='#ff191b1d', GradientType=0);
   filter: none;

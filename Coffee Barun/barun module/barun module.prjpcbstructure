@@ -1,0 +1,4 @@
+Record=SheetSymbol|SourceDocument=Barun Module.SchDoc|Designator=U_7 Segment Display|SchDesignator=U_7 Segment Display|FileName=7 Segment Display.SchDoc|SymbolType=Normal|RawFileName=7 Segment Display.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Barun Module.SchDoc|Designator=U_PIC16F627|SchDesignator=U_PIC16F627|FileName=PIC16F627.SchDoc|SymbolType=Normal|RawFileName=PIC16F627.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Barun Module.SchDoc|Designator=U_PSU|SchDesignator=U_PSU|FileName=PSU.SchDoc|SymbolType=Normal|RawFileName=PSU.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=TopLevelDocument|FileName=Barun Module.SchDoc

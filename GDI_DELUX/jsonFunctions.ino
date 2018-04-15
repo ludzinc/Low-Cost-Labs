@@ -126,7 +126,7 @@ String sendTemperature() {
   JsonObject& root = jsonBuffer.createObject();
   queryTemperature();                                  // get temperature from I2C sensor (rename routine) TO DO TO DO
   root["echo"] = "configTemperature";
-  root["mode"] = "C";
+  root["mode"] = temperatureChoice;
   root["slope"] = tempSlope;
   root["intercept"] = tempIntercept;
   root["data"] = currentTemperature;
@@ -137,10 +137,6 @@ String sendTemperature() {
 // Save Network Configuration from json data to file
 //******************************************************************************************************************************
 String saveNetworkConfig(JsonObject &jsonData) {
-//  DynamicJsonBuffer jsonBuffer;
-//  JsonObject& jsonData = jsonBuffer.parseObject(text);
-//  const char* type = jsonData["type"];
-//  Serial.println("read json for network data");
   jsonData["newSSID"].as<String>().toCharArray(ssid, 30);
   jsonData["newPass"].as<String>().toCharArray(password, 30);
   jsonData["newLocalName"].as<String>().toCharArray(hostName, 30);
@@ -156,9 +152,10 @@ String saveButtonConfig(JsonObject &jsonData) {
     buttons[i].mode     = jsonData["buttonMode"][i];  // choose mode of input buttons, 0 = door, 1 = light
     inputs[i].mode      = jsonData["buttonMode"][i];  // choose mode of input buttons, 0 = door, 1 = light
     htmlButtonNames[i]  = jsonData["buttonNames"][i].as<String>();
-    buttons[i].show      = jsonData["show"][i];
-    buttons[i].onTime    = jsonData["onTime"][i];  // choose mode of input buttons, 0 = door, 1 = light
+    buttons[i].show     = jsonData["show"][i];
+    buttons[i].onTime   = jsonData["onTime"][i];  // choose mode of input buttons, 0 = door, 1 = light
   }
+  saveConfig();
   String message = "{\"echo\":\"Button Settings Saved\"}";
   return message;
 }

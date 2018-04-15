@@ -1,0 +1,966 @@
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 1
+
+ADDR CODE  LINE SOURCE
+
+           0001 
+           0002 ; CC5X Version 3.2, Copyright (c) B Knudsen Data
+           0003 ; C compiler for the PICmicro family
+           0004 ; ************  29. Dec 2010   0:27  *************
+           0005 
+           0006 	processor  16F627A
+           0007 	radix  DEC
+           0008 
+     0000  0009 INDF        EQU   0x00
+     0003  0010 STATUS      EQU   0x03
+     0004  0011 FSR         EQU   0x04
+     0005  0012 PORTA       EQU   0x05
+     0085  0013 TRISA       EQU   0x85
+     0006  0014 PORTB       EQU   0x06
+     0086  0015 TRISB       EQU   0x86
+     000B  0016 INTCON      EQU   0x0B
+     0000  0017 Carry       EQU   0
+     0002  0018 Zero_       EQU   2
+     0005  0019 RP0         EQU   5
+     0006  0020 RP1         EQU   6
+     0007  0021 IRP         EQU   7
+     0007  0022 GIE         EQU   7
+     0081  0023 OPTION_REG  EQU   0x81
+     000C  0024 PIR1        EQU   0x0C
+     0012  0025 T2CON       EQU   0x12
+     0019  0026 TXREG       EQU   0x19
+     001A  0027 RCREG       EQU   0x1A
+     001F  0028 CMCON       EQU   0x1F
+     008C  0029 PIE1        EQU   0x8C
+     008E  0030 PCON        EQU   0x8E
+     0092  0031 PR2         EQU   0x92
+     0098  0032 TXSTA       EQU   0x98
+     0099  0033 SPBRG       EQU   0x99
+     009A  0034 EEDATA      EQU   0x9A
+     009B  0035 EEADR       EQU   0x9B
+     009D  0036 EECON2      EQU   0x9D
+     0000  0037 RB0         EQU   0
+     0003  0038 RB3         EQU   3
+     0006  0039 RB6         EQU   6
+     0007  0040 RB7         EQU   7
+     0001  0041 TMR2IF      EQU   1
+     0004  0042 TXIF        EQU   4
+     0005  0043 RCIF        EQU   5
+     0001  0044 OERR        EQU   1
+     0002  0045 FERR        EQU   2
+     0004  0046 CREN        EQU   4
+     0007  0047 SPEN        EQU   7
+     0005  0048 RCIE        EQU   5
+     0001  0049 TRMT        EQU   1
+     0005  0050 TXEN        EQU   5
+     0000  0051 RD          EQU   0
+     0001  0052 WR          EQU   1
+     0002  0053 WREN        EQU   2
+     0038  0054 FSRTemp     EQU   0x38
+     0039  0055 T2ms        EQU   0x39
+     003A  0056 T10ms       EQU   0x3A
+     003B  0057 T100ms      EQU   0x3B
+     003C  0058 SecondsFlag EQU   0x3C
+     003D  0059 RxBuffer    EQU   0x3D
+     004B  0060 PacketLength EQU   0x4B
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 2
+
+ADDR CODE  LINE SOURCE
+
+     004C  0061 PacketBytes EQU   0x4C
+     004D  0062 RxData      EQU   0x4D
+     004E  0063 ProtocolState EQU   0x4E
+     004F  0064 printstate  EQU   0x4F
+     0050  0065 HDB1        EQU   0x50
+     0051  0066 HDB2        EQU   0x51
+     0052  0067 SNAP_DAB    EQU   0x52
+     0053  0068 SNAP_SAB    EQU   0x53
+     0054  0069 SNAP_PFB    EQU   0x54
+     0055  0070 SNAP_ACK_NACK EQU   0x55
+     0057  0071 SNAP_EDM    EQU   0x57
+     0058  0072 SNAP_NDB    EQU   0x58
+     0059  0073 SNAP_CHECKSUM EQU   0x59
+     0070  0074 svrWREG     EQU   0x70
+     0020  0075 svrSTATUS   EQU   0x20
+     0021  0076 i           EQU   0x21
+     0024  0077 i_2         EQU   0x24
+     0025  0078 StartFlag   EQU   0x25
+     0026  0079 text        EQU   0x26
+     007F  0080 input       EQU   0x7F
+     007F  0081 state       EQU   0x7F
+     007F  0082 counter     EQU   0x7F
+     0037  0083 data        EQU   0x37
+     0022  0084 text_2      EQU   0x22
+     0023  0085 i_3         EQU   0x23
+     0027  0086 Buffer      EQU   0x27
+     0035  0087 i_4         EQU   0x35
+     0036  0088 text_3      EQU   0x36
+     007F  0089 address     EQU   0x7F
+     007F  0090 data_2      EQU   0x7F
+     007F  0091 address_2   EQU   0x7F
+     007F  0092 data_3      EQU   0x7F
+           0093 
+0000 28FA  0094 	GOTO main
+           0095 
+           0096   ; FILE SNAP.C
+           0097 			;// TO DO
+           0098 			;//
+           0099 			;// 1. why does making RxBufferLength larger break things??
+           0100 			;// 2. checksum on / off testing
+           0101 			;// 3. error reporting??
+           0102 			;// 4. return message if checksum matches
+           0103 			;// 5. build customised return messages
+           0104 			;
+           0105 			;//#define   PIC16F627A
+           0106 			;//#include "16F627A.H"
+           0107 			;#include "INT16CXX.H"
+           0108 			;#include "SNAP.H"
+           0109 			;
+           0110 			;#pragma origin 			= 0x0004					// CHECK THIS IN DATASHEET.  WHAT 0x0004 ???
+     0000  0111 	ORG 0x0004
+           0112 			;#pragma config        	= 0b0011.1111.0101.1000   	// MCLR Pin is input
+           0113 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0114 			;// INTERRUPT ROUTINE
+           0115 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0116 			;#pragma codepage 0
+           0117 			;interrupt IntHandler() {
+           0118 IntHandler
+           0119 			;   	int_save_registers
+0004 00F0  0120 	MOVWF svrWREG
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 3
+
+ADDR CODE  LINE SOURCE
+
+0005 0E03  0121 	SWAPF STATUS,W
+0006 1283  0122 	BCF   0x03,RP0
+0007 1303  0123 	BCF   0x03,RP1
+0008 00A0  0124 	MOVWF svrSTATUS
+           0125 			;   	FSRTemp = FSR;
+0009 0804  0126 	MOVF  FSR,W
+000A 00B8  0127 	MOVWF FSRTemp
+           0128 			;   	int i = 0;
+000B 01A1  0129 	CLRF  i
+           0130 			;   	
+           0131 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0132 			;// TIMING FUNCTIONS
+           0133 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0134 			;	if (TMR2IF == 1) {
+000C 1C8C  0135 	BTFSS 0x0C,TMR2IF
+000D 2823  0136 	GOTO  m002
+           0137 			;		T2ms++;
+000E 0AB9  0138 	INCF  T2ms,1
+           0139 			;		if (T2ms == 5) {
+000F 0839  0140 	MOVF  T2ms,W
+0010 3A05  0141 	XORLW .5
+0011 1D03  0142 	BTFSS 0x03,Zero_
+0012 2822  0143 	GOTO  m001
+           0144 			;			T10ms++;
+0013 0ABA  0145 	INCF  T10ms,1
+           0146 			;			T2ms = 0;											// add debounce routines here if needed
+0014 01B9  0147 	CLRF  T2ms
+           0148 			;			if (T10ms == 10) {
+0015 083A  0149 	MOVF  T10ms,W
+0016 3A0A  0150 	XORLW .10
+0017 1D03  0151 	BTFSS 0x03,Zero_
+0018 2822  0152 	GOTO  m001
+           0153 			;				T100ms++;
+0019 0ABB  0154 	INCF  T100ms,1
+           0155 			;				T10ms = 0;
+001A 01BA  0156 	CLRF  T10ms
+           0157 			;				if (T100ms == 10) {
+001B 083B  0158 	MOVF  T100ms,W
+001C 3A0A  0159 	XORLW .10
+001D 1D03  0160 	BTFSS 0x03,Zero_
+001E 2822  0161 	GOTO  m001
+           0162 			;					T100ms = 0;
+001F 01BB  0163 	CLRF  T100ms
+           0164 			;					SecondsFlag = 1;
+0020 3001  0165 	MOVLW .1
+0021 00BC  0166 	MOVWF SecondsFlag
+           0167 			;					//GreenLED=!GreenLED;
+           0168 			;					//RedLED=0;
+           0169 			;				}
+           0170 			;			}
+           0171 			;		}
+           0172 			;	TMR2IF = 0;
+0022 108C  0173 m001	BCF   0x0C,TMR2IF
+           0174 			;	}
+           0175 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0176 			;// UART Rx FUNCTIONS
+           0177 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0178 			;	if (RCIF ==1 ) {									// Data in UART Rx Buffer
+0023 1E8C  0179 m002	BTFSS 0x0C,RCIF
+0024 28F2  0180 	GOTO  m018
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 4
+
+ADDR CODE  LINE SOURCE
+
+           0181 			;		RxData =  RxByte();								// read data from UART buffer (also clears UART buffer)
+0025 2171  0182 	CALL  RxByte
+0026 00CD  0183 	MOVWF RxData
+           0184 			;		RedLED=1;										// check if RxByte is correct (no UART error)
+0027 1706  0185 	BSF   0x06,RB6
+           0186 			;		if( OERR == 1) {								// OVERRUN ERROR (2 Bytes in FIFO, and other byte lost)
+0028 1C98  0187 	BTFSS 0x18,OERR
+0029 2832  0188 	GOTO  m003
+           0189 			;			RxData = RCREG;
+002A 081A  0190 	MOVF  RCREG,W
+002B 00CD  0191 	MOVWF RxData
+           0192 			;			RxData = RCREG;								// Read twice to clear FIFO
+002C 081A  0193 	MOVF  RCREG,W
+002D 00CD  0194 	MOVWF RxData
+           0195 			;			CREN = 0;									// Clear Error by re-enabling transmission
+002E 1218  0196 	BCF   0x18,CREN
+           0197 			;			CREN=1;
+002F 1618  0198 	BSF   0x18,CREN
+           0199 			;			ProtocolState=PROTOCOL_ERROR_UARTOVERRUN;	// packet now broken
+0030 30FE  0200 	MOVLW .254
+0031 00CE  0201 	MOVWF ProtocolState
+           0202 			;		}
+           0203 			;		if (FERR == 1) {								// Framing Error.  Stop bit is not = 1.
+0032 1D18  0204 m003	BTFSS 0x18,FERR
+0033 2838  0205 	GOTO  m004
+           0206 			;			RxData = RCREG;
+0034 081A  0207 	MOVF  RCREG,W
+0035 00CD  0208 	MOVWF RxData
+           0209 			;			ProtocolState=PROTOCOL_ERROR_UARTFRAMING;   // packet broken
+0036 30FF  0210 	MOVLW .255
+0037 00CE  0211 	MOVWF ProtocolState
+           0212 			;		}
+           0213 			;		// Otherwise Rx's character is okay and we can proceed	
+           0214 			;		if((ProtocolState == PROTOCOL_WAIT_START) && (RxData == COMMAND_SNAP_SYNC)) {	// check if byte = sync byte, while waiting for sync
+0038 08CE  0215 m004	MOVF  ProtocolState,1
+0039 1D03  0216 	BTFSS 0x03,Zero_
+003A 2843  0217 	GOTO  m005
+003B 084D  0218 	MOVF  RxData,W
+003C 3A54  0219 	XORLW .84
+003D 1D03  0220 	BTFSS 0x03,Zero_
+003E 2843  0221 	GOTO  m005
+           0222 			;			PacketBytes = 0;							// reset PacketByte (and RxBuffer index) counter
+003F 01CC  0223 	CLRF  PacketBytes
+           0224 			;			ProtocolState=PROTOCOL_GATHER_SNAP;			// advance ProtocolState
+0040 3001  0225 	MOVLW .1
+0041 00CE  0226 	MOVWF ProtocolState
+           0227 			;			GreenLED=1;
+0042 1786  0228 	BSF   0x06,RB7
+           0229 			;		}
+           0230 			;		if((PacketBytes < RxBufferLength)&& (ProtocolState == PROTOCOL_GATHER_SNAP)){
+0043 300E  0231 m005	MOVLW .14
+0044 024C  0232 	SUBWF PacketBytes,W
+0045 1803  0233 	BTFSC 0x03,Carry
+0046 28F2  0234 	GOTO  m018
+0047 0B4E  0235 	DECFSZ ProtocolState,W
+0048 28F2  0236 	GOTO  m018
+           0237 			;			RxBuffer[PacketBytes] = RxData;
+0049 303D  0238 	MOVLW .61
+004A 074C  0239 	ADDWF PacketBytes,W
+004B 0084  0240 	MOVWF FSR
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 5
+
+ADDR CODE  LINE SOURCE
+
+004C 1383  0241 	BCF   0x03,IRP
+004D 084D  0242 	MOVF  RxData,W
+004E 0080  0243 	MOVWF INDF
+           0244 			;			PacketBytes++;
+004F 0ACC  0245 	INCF  PacketBytes,1
+           0246 			;			if(PacketBytes==PacketLength){
+0050 084C  0247 	MOVF  PacketBytes,W
+0051 064B  0248 	XORWF PacketLength,W
+0052 1D03  0249 	BTFSS 0x03,Zero_
+0053 2857  0250 	GOTO  m006
+           0251 			;					ProtocolState=PROTOCOL_WAIT_START;
+0054 01CE  0252 	CLRF  ProtocolState
+           0253 			;					GreenLED=0;
+0055 1386  0254 	BCF   0x06,RB7
+           0255 			;					SNAP_CHECKSUM = 0;
+0056 01D9  0256 	CLRF  SNAP_CHECKSUM
+           0257 			;			}
+           0258 			;			if(PacketBytes==3){
+0057 084C  0259 m006	MOVF  PacketBytes,W
+0058 3A03  0260 	XORLW .3
+0059 1D03  0261 	BTFSS 0x03,Zero_
+005A 28BD  0262 	GOTO  m012
+           0263 			;				//TO DO!! Calculate packet length
+           0264 			;				HDB2=RxBuffer[1];
+005B 083E  0265 	MOVF  RxBuffer+1,W
+005C 00D1  0266 	MOVWF HDB2
+           0267 			;				HDB1=RxBuffer[2];
+005D 083F  0268 	MOVF  RxBuffer+2,W
+005E 00D0  0269 	MOVWF HDB1
+           0270 			;				
+           0271 			;				SNAP_ACK_NACK=HDB2&0x03;
+005F 3003  0272 	MOVLW .3
+0060 0551  0273 	ANDWF HDB2,W
+0061 00D5  0274 	MOVWF SNAP_ACK_NACK
+           0275 			;				HDB2=HDB2>>2;
+0062 1003  0276 	BCF   0x03,Carry
+0063 0CD1  0277 	RRF   HDB2,1
+0064 1003  0278 	BCF   0x03,Carry
+0065 0CD1  0279 	RRF   HDB2,1
+           0280 			;				SNAP_PFB=HDB2&0x03;
+0066 3003  0281 	MOVLW .3
+0067 0551  0282 	ANDWF HDB2,W
+0068 00D4  0283 	MOVWF SNAP_PFB
+           0284 			;				HDB2=HDB2>>2;
+0069 1003  0285 	BCF   0x03,Carry
+006A 0CD1  0286 	RRF   HDB2,1
+006B 1003  0287 	BCF   0x03,Carry
+006C 0CD1  0288 	RRF   HDB2,1
+           0289 			;				SNAP_SAB=HDB2&0x03;
+006D 3003  0290 	MOVLW .3
+006E 0551  0291 	ANDWF HDB2,W
+006F 00D3  0292 	MOVWF SNAP_SAB
+           0293 			;				HDB2=HDB2>>2;
+0070 1003  0294 	BCF   0x03,Carry
+0071 0CD1  0295 	RRF   HDB2,1
+0072 1003  0296 	BCF   0x03,Carry
+0073 0CD1  0297 	RRF   HDB2,1
+           0298 			;				SNAP_DAB=HDB2&0x03;
+0074 3003  0299 	MOVLW .3
+0075 0551  0300 	ANDWF HDB2,W
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 6
+
+ADDR CODE  LINE SOURCE
+
+0076 00D2  0301 	MOVWF SNAP_DAB
+           0302 			;				
+           0303 			;				SNAP_NDB=HDB1&0x0F;					//If SNAP_NDB < 8, then = HDBA&0b0000.1111
+0077 300F  0304 	MOVLW .15
+0078 0550  0305 	ANDWF HDB1,W
+0079 00D8  0306 	MOVWF SNAP_NDB
+           0307 			;				if(SNAP_NDB > 8) {
+007A 3009  0308 	MOVLW .9
+007B 0258  0309 	SUBWF SNAP_NDB,W
+007C 1C03  0310 	BTFSS 0x03,Carry
+007D 2888  0311 	GOTO  m007
+           0312 			;					SNAP_NDB = 8*(2^(HDB1&0x07));	//Else apply SNAP rules
+007E 3007  0313 	MOVLW .7
+007F 0550  0314 	ANDWF HDB1,W
+0080 3A02  0315 	XORLW .2
+0081 00D8  0316 	MOVWF SNAP_NDB
+0082 1003  0317 	BCF   0x03,Carry
+0083 0DD8  0318 	RLF   SNAP_NDB,1
+0084 1003  0319 	BCF   0x03,Carry
+0085 0DD8  0320 	RLF   SNAP_NDB,1
+0086 1003  0321 	BCF   0x03,Carry
+0087 0DD8  0322 	RLF   SNAP_NDB,1
+           0323 			;				}	
+           0324 			;				
+           0325 			;				RxBuffer[0]=SNAP_DAB+48;
+0088 3030  0326 m007	MOVLW .48
+0089 0752  0327 	ADDWF SNAP_DAB,W
+008A 00BD  0328 	MOVWF RxBuffer
+           0329 			;				RxBuffer[1]=SNAP_SAB+48;
+008B 3030  0330 	MOVLW .48
+008C 0753  0331 	ADDWF SNAP_SAB,W
+008D 00BE  0332 	MOVWF RxBuffer+1
+           0333 			;				RxBuffer[2]=SNAP_NDB+48;
+008E 3030  0334 	MOVLW .48
+008F 0758  0335 	ADDWF SNAP_NDB,W
+0090 00BF  0336 	MOVWF RxBuffer+2
+           0337 			;				
+           0338 			;				SNAP_EDM = (HDB1 & 0x70) >> 4;
+0091 3070  0339 	MOVLW .112
+0092 0550  0340 	ANDWF HDB1,W
+0093 00D7  0341 	MOVWF SNAP_EDM
+0094 0E57  0342 	SWAPF SNAP_EDM,W
+0095 390F  0343 	ANDLW .15
+0096 00D7  0344 	MOVWF SNAP_EDM
+           0345 			;				
+           0346 			;				PacketLength=3 + SNAP_DAB + SNAP_SAB + SNAP_NDB;
+0097 3003  0347 	MOVLW .3
+0098 0752  0348 	ADDWF SNAP_DAB,W
+0099 0753  0349 	ADDWF SNAP_SAB,W
+009A 0758  0350 	ADDWF SNAP_NDB,W
+009B 00CB  0351 	MOVWF PacketLength
+           0352 			;
+           0353 			;				switch (SNAP_EDM) {
+009C 0857  0354 	MOVF  SNAP_EDM,W
+009D 1903  0355 	BTFSC 0x03,Zero_
+009E 28BD  0356 	GOTO  m012
+009F 3A01  0357 	XORLW .1
+00A0 1903  0358 	BTFSC 0x03,Zero_
+00A1 28BD  0359 	GOTO  m012
+00A2 3A03  0360 	XORLW .3
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 7
+
+ADDR CODE  LINE SOURCE
+
+00A3 1903  0361 	BTFSC 0x03,Zero_
+00A4 28B5  0362 	GOTO  m008
+00A5 3A01  0363 	XORLW .1
+00A6 1903  0364 	BTFSC 0x03,Zero_
+00A7 28B7  0365 	GOTO  m009
+00A8 3A07  0366 	XORLW .7
+00A9 1903  0367 	BTFSC 0x03,Zero_
+00AA 28B9  0368 	GOTO  m010
+00AB 3A01  0369 	XORLW .1
+00AC 1903  0370 	BTFSC 0x03,Zero_
+00AD 28BB  0371 	GOTO  m011
+00AE 3A03  0372 	XORLW .3
+00AF 1903  0373 	BTFSC 0x03,Zero_
+00B0 28BD  0374 	GOTO  m012
+00B1 3A01  0375 	XORLW .1
+00B2 1903  0376 	BTFSC 0x03,Zero_
+00B3 28BD  0377 	GOTO  m012
+00B4 28BD  0378 	GOTO  m012
+           0379 			;					case 0:
+           0380 			;						break;
+           0381 			;					case 1:
+           0382 			;						break;
+           0383 			;					case 2:
+           0384 			;						PacketLength = PacketLength +1;
+00B5 0ACB  0385 m008	INCF  PacketLength,1
+           0386 			;						break;
+00B6 28BD  0387 	GOTO  m012
+           0388 			;					case 3:
+           0389 			;						PacketLength = PacketLength +1;
+00B7 0ACB  0390 m009	INCF  PacketLength,1
+           0391 			;						break;
+00B8 28BD  0392 	GOTO  m012
+           0393 			;					case 4:
+           0394 			;						PacketLength = PacketLength +2;
+00B9 3002  0395 m010	MOVLW .2
+00BA 07CB  0396 	ADDWF PacketLength,1
+           0397 			;					case 5:
+           0398 			;						PacketLength = PacketLength +4;
+00BB 3004  0399 m011	MOVLW .4
+00BC 07CB  0400 	ADDWF PacketLength,1
+           0401 			;					case 6:
+           0402 			;					case 7:
+           0403 			;					default:
+           0404 			;						break;
+           0405 			;				}
+           0406 			;			}		
+           0407 			;			if(PacketBytes == PacketLength) {
+00BD 084C  0408 m012	MOVF  PacketBytes,W
+00BE 064B  0409 	XORWF PacketLength,W
+00BF 1D03  0410 	BTFSS 0x03,Zero_
+00C0 28E7  0411 	GOTO  m016
+           0412 			;				switch (SNAP_EDM) {
+00C1 0857  0413 	MOVF  SNAP_EDM,W
+00C2 1903  0414 	BTFSC 0x03,Zero_
+00C3 28E7  0415 	GOTO  m016
+00C4 3A01  0416 	XORLW .1
+00C5 1903  0417 	BTFSC 0x03,Zero_
+00C6 28E7  0418 	GOTO  m016
+00C7 3A03  0419 	XORLW .3
+00C8 1903  0420 	BTFSC 0x03,Zero_
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 8
+
+ADDR CODE  LINE SOURCE
+
+00C9 28D4  0421 	GOTO  m013
+00CA 3A01  0422 	XORLW .1
+00CB 1903  0423 	BTFSC 0x03,Zero_
+00CC 28E7  0424 	GOTO  m016
+00CD 3A07  0425 	XORLW .7
+00CE 1903  0426 	BTFSC 0x03,Zero_
+00CF 28E7  0427 	GOTO  m016
+00D0 3A01  0428 	XORLW .1
+00D1 1903  0429 	BTFSC 0x03,Zero_
+00D2 28E7  0430 	GOTO  m016
+00D3 28E7  0431 	GOTO  m016
+           0432 			;					case 0:							// do nothing - no checksum 
+           0433 			;						break;						// No change in PacketLength!
+           0434 			;					case 1:							// do nothing - x3 transmission mode (check x3 buffers here late
+                   r)
+           0435 			;						break;						// No change in PacketLength!
+           0436 			;					case 2:							// 8 bit sum checksum
+           0437 			;						for(i=0;i<PacketLength-1;i++) {
+00D4 01A1  0438 m013	CLRF  i
+00D5 034B  0439 m014	DECF  PacketLength,W
+00D6 0221  0440 	SUBWF i,W
+00D7 1803  0441 	BTFSC 0x03,Carry
+00D8 28E1  0442 	GOTO  m015
+           0443 			;							SNAP_CHECKSUM = SNAP_CHECKSUM + RxBuffer[i];
+00D9 303D  0444 	MOVLW .61
+00DA 0721  0445 	ADDWF i,W
+00DB 0084  0446 	MOVWF FSR
+00DC 1383  0447 	BCF   0x03,IRP
+00DD 0800  0448 	MOVF  INDF,W
+00DE 07D9  0449 	ADDWF SNAP_CHECKSUM,1
+           0450 			;						}
+00DF 0AA1  0451 	INCF  i,1
+00E0 28D5  0452 	GOTO  m014
+           0453 			;						//PacketLength = PacketLength + 1;
+           0454 			;						RxBuffer[PacketLength-1]=SNAP_CHECKSUM;
+00E1 303C  0455 m015	MOVLW .60
+00E2 074B  0456 	ADDWF PacketLength,W
+00E3 0084  0457 	MOVWF FSR
+00E4 1383  0458 	BCF   0x03,IRP
+00E5 0859  0459 	MOVF  SNAP_CHECKSUM,W
+00E6 0080  0460 	MOVWF INDF
+           0461 			;						break;	
+           0462 			;					case 3:
+           0463 			;						//PacketLength = PacketLength + 1;
+           0464 			;						break;						// do 8 bit crc here
+           0465 			;					case 4:
+           0466 			;						//PacketLength = PacketLength + 2;
+           0467 			;						break;						// do 16 bit crc here
+           0468 			;					case 5:
+           0469 			;						//PacketLength = PacketLength + 4;
+           0470 			;						break;						// do 32 bit crc here
+           0471 			;					default:
+           0472 			;						break;
+           0473 			;				}	
+           0474 			;			} 		
+           0475 			;			if((PacketBytes > PacketLength)||(ProtocolState == PROTOCOL_ERROR_UARTOVERRUN) || (ProtocolState == PROTOCOL_ERROR_UARTFRAMING)) {
+00E7 084C  0476 m016	MOVF  PacketBytes,W
+00E8 024B  0477 	SUBWF PacketLength,W
+00E9 1C03  0478 	BTFSS 0x03,Carry
+00EA 28F1  0479 	GOTO  m017
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 9
+
+ADDR CODE  LINE SOURCE
+
+00EB 084E  0480 	MOVF  ProtocolState,W
+00EC 3AFE  0481 	XORLW .254
+00ED 1903  0482 	BTFSC 0x03,Zero_
+00EE 28F1  0483 	GOTO  m017
+00EF 0A4E  0484 	INCF  ProtocolState,W
+00F0 1903  0485 	BTFSC 0x03,Zero_
+           0486 			;				ProtocolState=PROTOCOL_WAIT_START;
+00F1 01CE  0487 m017	CLRF  ProtocolState
+           0488 			;				// report error here before resetting to WAIT_STATE
+           0489 			;			}
+           0490 			;		}
+           0491 			;	}
+           0492 			;	RedLED=0;
+00F2 1306  0493 m018	BCF   0x06,RB6
+           0494 			;   	FSR = FSRTemp;
+00F3 0838  0495 	MOVF  FSRTemp,W
+00F4 0084  0496 	MOVWF FSR
+           0497 			;   	int_restore_registers  	
+00F5 0E20  0498 	SWAPF svrSTATUS,W
+00F6 0083  0499 	MOVWF STATUS
+00F7 0EF0  0500 	SWAPF svrWREG,1
+00F8 0E70  0501 	SWAPF svrWREG,W
+           0502 			;}
+00F9 0009  0503 	RETFIE
+           0504 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0505 			;// MAIN ROUTINE
+           0506 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0507 			;void main(void) {
+           0508 main
+           0509 			;
+           0510 			;	char i =0;
+00FA 1283  0511 	BCF   0x03,RP0
+00FB 1303  0512 	BCF   0x03,RP1
+00FC 01A4  0513 	CLRF  i_2
+           0514 			;	char StartFlag =0;
+00FD 01A5  0515 	CLRF  StartFlag
+           0516 			;	char text =0;
+00FE 01A6  0517 	CLRF  text
+           0518 			;	
+           0519 			;	printstate=0;
+00FF 01CF  0520 	CLRF  printstate
+           0521 			;		
+           0522 			;	InitialiseGlobals();
+0100 212F  0523 	CALL  InitialiseGlobals
+           0524 			;	InitialiseHardware();
+0101 1683  0525 	BSF   0x03,RP0
+0102 210F  0526 	CALL  InitialiseHardware
+           0527 			;
+           0528 			;	GreenLED=0;
+0103 1283  0529 	BCF   0x03,RP0
+0104 1386  0530 	BCF   0x06,RB7
+           0531 			;	ConfigSerial();
+0105 1683  0532 	BSF   0x03,RP0
+0106 215C  0533 	CALL  ConfigSerial
+           0534 			;
+           0535 			;	while (1) {
+           0536 			;/*		
+           0537 			;		if(StartFlag==0){
+           0538 			;			for(i=0;i<20;i++){			
+           0539 			;				text=ReadEEPROM(i);
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 10
+
+ADDR CODE  LINE SOURCE
+
+           0540 			;				RxBuffer[i]=text;
+           0541 			;			}
+           0542 			;			StartFlag=1;
+           0543 			;			PacketBytes=RxBufferLength;
+           0544 			;		}
+           0545 			;*/
+           0546 			;		if(PacketBytes == RxBufferLength){
+0107 084C  0547 m019	MOVF  PacketBytes,W
+0108 3A0E  0548 	XORLW .14
+0109 1D03  0549 	BTFSS 0x03,Zero_
+010A 2907  0550 	GOTO  m019
+           0551 			;			SendString(&RxBuffer[RxBufferLength]);	
+010B 304B  0552 	MOVLW .75
+010C 00A7  0553 	MOVWF Buffer
+010D 217B  0554 	CALL  SendString
+           0555 			;			//PacketBytes=0;
+           0556 			;		}
+           0557 			;	}	
+010E 2907  0558 	GOTO  m019
+           0559 			;}// end main()
+           0560 			;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0561 			;
+           0562 			;void InitialiseHardware(void) {
+           0563 InitialiseHardware
+           0564 			;  	TRISA  = 0b00111111; 				// PORTA (0 = OUTPUT)
+010F 303F  0565 	MOVLW .63
+0110 0085  0566 	MOVWF TRISA
+           0567 			;	PORTA  = 0b00000000;				// Initialise PORTA
+0111 1283  0568 	BCF   0x03,RP0
+0112 0185  0569 	CLRF  PORTA
+           0570 			;	TRISB  = 0b00000000;      			// PORTB (0 = OUTPUT), RB1, RB2 = Serial coms, set as inputs.  Coms hardware asserts outputs as required
+                   
+0113 1683  0571 	BSF   0x03,RP0
+0114 0186  0572 	CLRF  TRISB
+           0573 			;	PORTB  = 0b00000000;				// Initialise PORTB
+0115 1283  0574 	BCF   0x03,RP0
+0116 0186  0575 	CLRF  PORTB
+           0576 			;	OPTION = 0b10001000;   				// No weak pull ups, prescaler assigned to WDT
+0117 3088  0577 	MOVLW .136
+0118 1683  0578 	BSF   0x03,RP0
+0119 0081  0579 	MOVWF OPTION_REG
+           0580 			;   	INTCON = 0b11000000;				// TMR2 used to provide 1ms ticks.
+011A 30C0  0581 	MOVLW .192
+011B 008B  0582 	MOVWF INTCON
+           0583 			;	CMCON  = 0b00000111;				// Enable RA0:3 as Digital Inputs
+011C 3007  0584 	MOVLW .7
+011D 1283  0585 	BCF   0x03,RP0
+011E 009F  0586 	MOVWF CMCON
+           0587 			;	PCON   = 0b00001000;				// Set internal osciallator to 4MHz
+011F 3008  0588 	MOVLW .8
+0120 1683  0589 	BSF   0x03,RP0
+0121 008E  0590 	MOVWF PCON
+           0591 			;	T2CON  = 0b00001101;				// TMR2 on, prescale = 1:4, and postscale = 1:2  (8us ticks with 4MHz oscillator)
+0122 300D  0592 	MOVLW .13
+0123 1283  0593 	BCF   0x03,RP0
+0124 0092  0594 	MOVWF T2CON
+           0595 			;	PIE1   = 0b00000010;				// Bit 1 enables TMR2 = PR2 interface
+0125 3002  0596 	MOVLW .2
+0126 1683  0597 	BSF   0x03,RP0
+0127 008C  0598 	MOVWF PIE1
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 11
+
+ADDR CODE  LINE SOURCE
+
+           0599 			;	RCIE = 1;							// enable UART Rx Interrupts
+0128 168C  0600 	BSF   0x8C,RCIE
+           0601 			;	
+           0602 			;	PIR1   = 0b00000000;				// Read this to see if TMR2 = PR2 flag is set
+0129 1283  0603 	BCF   0x03,RP0
+012A 018C  0604 	CLRF  PIR1
+           0605 			;	PR2 = 250;							// TMR2 match value, for 2ms ticks
+012B 30FA  0606 	MOVLW .250
+012C 1683  0607 	BSF   0x03,RP0
+012D 0092  0608 	MOVWF PR2
+           0609 			;}
+012E 0008  0610 	RETURN
+           0611 			;
+           0612 			;
+           0613 			;void InitialiseGlobals(void) {
+           0614 InitialiseGlobals
+           0615 			;	T2ms = 0;							// Reset Timers
+012F 01B9  0616 	CLRF  T2ms
+           0617 			;	T10ms = 0;
+0130 01BA  0618 	CLRF  T10ms
+           0619 			;	T100ms = 0;
+0131 01BB  0620 	CLRF  T100ms
+           0621 			;	SecondsFlag=0;
+0132 01BC  0622 	CLRF  SecondsFlag
+           0623 			;	RxData=0;
+0133 01CD  0624 	CLRF  RxData
+           0625 			;	PacketBytes = 0;
+0134 01CC  0626 	CLRF  PacketBytes
+           0627 			;	//ProtocolState=0;
+           0628 			;	PacketLength=RxBufferLength;		//initialising to zero is bad here
+0135 300E  0629 	MOVLW .14
+0136 00CB  0630 	MOVWF PacketLength
+           0631 			;	HDB1 = 0;
+0137 01D0  0632 	CLRF  HDB1
+           0633 			;	HDB2 = 0;
+0138 01D1  0634 	CLRF  HDB2
+           0635 			;	SNAP_CHECKSUM = 0;
+0139 01D9  0636 	CLRF  SNAP_CHECKSUM
+           0637 			;}
+013A 0008  0638 	RETURN
+           0639 			;
+           0640 			;
+           0641 			;
+           0642 			;
+           0643 			;void debounce(char input, char *state, char *counter) {
+           0644 debounce
+           0645 			;	if ((*state) != input) {
+013B 1383  0646 	BCF   0x03,IRP
+013C 087F  0647 	MOVF  state,W
+013D 0084  0648 	MOVWF FSR
+013E 0800  0649 	MOVF  INDF,W
+013F 067F  0650 	XORWF input,W
+0140 1903  0651 	BTFSC 0x03,Zero_
+0141 2957  0652 	GOTO  m020
+           0653 			;   		(*counter)++;
+0142 1383  0654 	BCF   0x03,IRP
+0143 087F  0655 	MOVF  counter,W
+0144 0084  0656 	MOVWF FSR
+0145 0A80  0657 	INCF  INDF,1
+           0658 			;		if ((*counter) >= MAX_DEBOUNCE_COUNT) {
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 12
+
+ADDR CODE  LINE SOURCE
+
+0146 1383  0659 	BCF   0x03,IRP
+0147 087F  0660 	MOVF  counter,W
+0148 0084  0661 	MOVWF FSR
+0149 300A  0662 	MOVLW .10
+014A 0200  0663 	SUBWF INDF,W
+014B 1C03  0664 	BTFSS 0x03,Carry
+014C 295B  0665 	GOTO  m021
+           0666 			;			(*counter) = 0;
+014D 1383  0667 	BCF   0x03,IRP
+014E 087F  0668 	MOVF  counter,W
+014F 0084  0669 	MOVWF FSR
+0150 0180  0670 	CLRF  INDF
+           0671 			;			(*state) = input;
+0151 1383  0672 	BCF   0x03,IRP
+0152 087F  0673 	MOVF  state,W
+0153 0084  0674 	MOVWF FSR
+0154 087F  0675 	MOVF  input,W
+0155 0080  0676 	MOVWF INDF
+           0677 			;		}
+           0678 			;	} else {
+0156 295B  0679 	GOTO  m021
+           0680 			;		(*counter) = 0;
+0157 1383  0681 m020	BCF   0x03,IRP
+0158 087F  0682 	MOVF  counter,W
+0159 0084  0683 	MOVWF FSR
+015A 0180  0684 	CLRF  INDF
+           0685 			;	}
+           0686 			;}
+015B 0008  0687 m021	RETURN
+           0688 			;
+           0689 			;void ConfigSerial(){
+           0690 ConfigSerial
+           0691 			;	
+           0692 			;	TRISB = TRISB|0b0000.0110;		// RB1, RB2 inputs - UART sets outputs as needed
+015C 3006  0693 	MOVLW .6
+015D 0486  0694 	IORWF TRISB,1
+           0695 			;	SPBRG = 0x19;					// 9600 baud at 4MHz (9615 baud exactly) - HIGH SPEED BAUD RATE GENERATOR
+015E 3019  0696 	MOVLW .25
+015F 0099  0697 	MOVWF SPBRG
+           0698 			;	TXSTA = 0b0010.0100;			// Enable asynch Tx mode
+0160 3024  0699 	MOVLW .36
+0161 0098  0700 	MOVWF TXSTA
+           0701 			;
+           0702 			;	SPEN = 1;						// Turn UART on
+0162 1283  0703 	BCF   0x03,RP0
+0163 1798  0704 	BSF   0x18,SPEN
+           0705 			;	CREN = 1;						// Enable Reception
+0164 1618  0706 	BSF   0x18,CREN
+           0707 			;	TXEN = 1;						// Enable Transmission
+0165 1683  0708 	BSF   0x03,RP0
+0166 1698  0709 	BSF   0x98,TXEN
+           0710 			;
+           0711 			;	TxCtrl = TxActive;				// Turn on 485 
+0167 1283  0712 	BCF   0x03,RP0
+0168 1586  0713 	BSF   0x06,RB3
+           0714 			;} 
+0169 0008  0715 	RETURN
+           0716 			;	
+           0717 			;void TxByte(char data){
+           0718 TxByte
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 13
+
+ADDR CODE  LINE SOURCE
+
+016A 00B7  0719 	MOVWF data
+           0720 			;
+           0721 			;		TXREG = data;				// stick byte into buffer
+016B 0099  0722 	MOVWF TXREG
+           0723 			;		while(TRMT ==0);			// Wait for Byte to finsih being sent
+016C 1683  0724 	BSF   0x03,RP0
+016D 1C98  0725 m022	BTFSS 0x98,TRMT
+016E 296D  0726 	GOTO  m022
+           0727 			;}
+016F 1283  0728 	BCF   0x03,RP0
+0170 0008  0729 	RETURN
+           0730 			;
+           0731 			;char RxByte(void) {					// read Rx data from UART
+           0732 RxByte
+           0733 			;
+           0734 			;	char text = 0;
+0171 01A2  0735 	CLRF  text_2
+           0736 			;	char i = 0;
+0172 01A3  0737 	CLRF  i_3
+           0738 			;	
+           0739 			;		if( OERR ==0 && FERR ==0 ) {
+0173 1898  0740 	BTFSC 0x18,OERR
+0174 2979  0741 	GOTO  m023
+0175 1918  0742 	BTFSC 0x18,FERR
+0176 2979  0743 	GOTO  m023
+           0744 			;			text = RCREG;
+0177 081A  0745 	MOVF  RCREG,W
+0178 00A2  0746 	MOVWF text_2
+           0747 			;			//RedLED=0;
+           0748 			;			//GreenLED=0;
+           0749 			;		}
+           0750 			;	return text;
+0179 0822  0751 m023	MOVF  text_2,W
+017A 0008  0752 	RETURN
+           0753 			;}	 
+           0754 			;void SendString(char *Buffer[RxBufferLength]) {
+           0755 SendString
+           0756 			;
+           0757 			;char i =0;
+017B 01B5  0758 	CLRF  i_4
+           0759 			;char text =0;	
+017C 01B6  0760 	CLRF  text_3
+           0761 			;	
+           0762 			;	for(i=0;i<RxBufferLength;i++){		// prepare to send data packet
+017D 01B5  0763 	CLRF  i_4
+017E 300E  0764 m024	MOVLW .14
+017F 0235  0765 	SUBWF i_4,W
+0180 1803  0766 	BTFSC 0x03,Carry
+0181 2997  0767 	GOTO  m027
+           0768 			;		while(TXIF == 0);				// Wait for Tx buffer to be empty
+0182 1E0C  0769 m025	BTFSS 0x0C,TXIF
+0183 2982  0770 	GOTO  m025
+           0771 			;		text = RxBuffer[i];				// Put ito RAM to speed things up (why keep reading the Array?)  Does this do speed improvement?
+                   
+0184 303D  0772 	MOVLW .61
+0185 0735  0773 	ADDWF i_4,W
+0186 0084  0774 	MOVWF FSR
+0187 1383  0775 	BCF   0x03,IRP
+0188 0800  0776 	MOVF  INDF,W
+0189 00B6  0777 	MOVWF text_3
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 14
+
+ADDR CODE  LINE SOURCE
+
+           0778 			;		if(text != 0){	
+018A 08B6  0779 	MOVF  text_3,1
+018B 1903  0780 	BTFSC 0x03,Zero_
+018C 2994  0781 	GOTO  m026
+           0782 			;			RxCtrl = !RxActive;			// Disable Rs485 Rx
+018D 1406  0783 	BSF   0x06,RB0
+           0784 			;			TxByte(text);				// Transmit buffer contents
+018E 216A  0785 	CALL  TxByte
+           0786 			;			RxBuffer[i]=0;
+018F 303D  0787 	MOVLW .61
+0190 0735  0788 	ADDWF i_4,W
+0191 0084  0789 	MOVWF FSR
+0192 1383  0790 	BCF   0x03,IRP
+0193 0180  0791 	CLRF  INDF
+           0792 			;		}
+           0793 			;		//while(TRMT ==0);				// Wait for Byte to finsih being sent
+           0794 			;		RxCtrl = RxActive;				// Enable RS485 Rx
+0194 1006  0795 m026	BCF   0x06,RB0
+           0796 			;	}	
+0195 0AB5  0797 	INCF  i_4,1
+0196 297E  0798 	GOTO  m024
+           0799 			;}
+0197 0008  0800 m027	RETURN
+           0801 			;
+           0802 			;// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0803 			;// EEPROM data access (PIC16F627A Version)
+           0804 			;// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           0805 			;char ReadEEPROM(char address) {
+           0806 ReadEEPROM
+0198 00FF  0807 	MOVWF address
+           0808 			;   	char data = 0;
+0199 01FF  0809 	CLRF  data_2
+           0810 			;   
+           0811 			;	EEADR = address;        // 1. Write address to EEADR
+019A 087F  0812 	MOVF  address,W
+019B 1683  0813 	BSF   0x03,RP0
+019C 1303  0814 	BCF   0x03,RP1
+019D 009B  0815 	MOVWF EEADR
+           0816 			;//   	EEPGD = 0;              // 2. Clear EEPGD bit to point to EEPROM data (not Needed 16F627A)
+           0817 			;   	RD = 1;                 // 3. Set the RD bit to start the read
+019E 141C  0818 	BSF   0x9C,RD
+           0819 			;   	data = EEDATA;          // 4. Read the data from EEDATA
+019F 081A  0820 	MOVF  EEDATA,W
+01A0 00FF  0821 	MOVWF data_2
+           0822 			;   	return data;
+01A1 0008  0823 	RETURN
+           0824 			;}
+           0825 			;
+           0826 			;void WriteEEPROM(char address, char data) {
+           0827 WriteEEPROM
+01A2 00FF  0828 	MOVWF data_3
+           0829 			;
+           0830 			;	EEADR = address;
+01A3 087F  0831 	MOVF  address_2,W
+01A4 1683  0832 	BSF   0x03,RP0
+01A5 1303  0833 	BCF   0x03,RP1
+01A6 009B  0834 	MOVWF EEADR
+           0835 			;	EEDATA = data;
+01A7 087F  0836 	MOVF  data_3,W
+01A8 009A  0837 	MOVWF EEDATA
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 15
+
+ADDR CODE  LINE SOURCE
+
+           0838 			;	
+           0839 			;	GIE = 0;				// Disable interrupts
+01A9 138B  0840 	BCF   0x0B,GIE
+           0841 			;	WREN = 1;				// Enable EEPROM write
+01AA 151C  0842 	BSF   0x9C,WREN
+           0843 			;	EECON2 = 0x55;
+01AB 3055  0844 	MOVLW .85
+01AC 009D  0845 	MOVWF EECON2
+           0846 			;	EECON2 = 0xAA;			
+01AD 30AA  0847 	MOVLW .170
+01AE 009D  0848 	MOVWF EECON2
+           0849 			;	WR = 1;					// EEPROM write sequence initiated
+01AF 149C  0850 	BSF   0x9C,WR
+           0851 			;	while(WR == 1);			// Wait for write to complete
+01B0 189C  0852 m028	BTFSC 0x9C,WR
+01B1 29B0  0853 	GOTO  m028
+           0854 			;	GIE = 1;				// Re-enable interrupts
+01B2 178B  0855 	BSF   0x0B,GIE
+           0856 			;	
+           0857 			;}
+01B3 0008  0858 	RETURN
+           0859 
+     0000  0860 	ORG 0x2100
+2100 000D  0861 	DATA 000DH
+2101 000A  0862 	DATA 000AH
+2102 0053  0863 	DATA 0053H
+2103 004E  0864 	DATA 004EH
+2104 0041  0865 	DATA 0041H
+2105 0050  0866 	DATA 0050H
+2106 0020  0867 	DATA 0020H
+2107 000D  0868 	DATA 000DH
+2108 000A  0869 	DATA 000AH
+2109 0056  0870 	DATA 0056H
+210A 0065  0871 	DATA 0065H
+210B 0072  0872 	DATA 0072H
+210C 0020  0873 	DATA 0020H
+210D 0030  0874 	DATA 0030H
+210E 002E  0875 	DATA 002EH
+210F 0030  0876 	DATA 0030H
+2110 0030  0877 	DATA 0030H
+     0000  0878 	ORG 0x2007
+2007 3F58  0879 	DATA 3F58H
+     0000  0880 	END
+     0000  0881 
+     0000  0882 
+     0000  0883 ; *** KEY INFO ***
+     0000  0884 
+     0000  0885 ; 0x010F   32 word(s)  3 % : InitialiseHardware
+     0000  0886 ; 0x012F   12 word(s)  1 % : InitialiseGlobals
+     0000  0887 ; 0x013B   33 word(s)  3 % : debounce
+     0000  0888 ; 0x015C   14 word(s)  1 % : ConfigSerial
+     0000  0889 ; 0x016A    7 word(s)  0 % : TxByte
+     0000  0890 ; 0x0171   10 word(s)  0 % : RxByte
+     0000  0891 ; 0x017B   29 word(s)  2 % : SendString
+     0000  0892 ; 0x0198   10 word(s)  0 % : ReadEEPROM
+     0000  0893 ; 0x01A2   18 word(s)  1 % : WriteEEPROM
+     0000  0894 ; 0x0004  246 word(s) 24 % : IntHandler
+     0000  0895 ; 0x00FA   21 word(s)  2 % : main
+     0000  0896 
+     0000  0897 ; RAM usage: 59 bytes (25 local), 165 bytes free
+CC5X Version 3.2,   File: SNAP.C              29. Dec 2010   0:27   Page 16
+
+ADDR CODE  LINE SOURCE
+
+     0000  0898 ; Maximum call level: 2 (+2 for interrupt)
+     0000  0899 ; Total of 433 code words (42 %)

@@ -1,0 +1,40 @@
+Version 3.2 HI-TECH Software Intermediate Code
+"39 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _FSRTemp `uc 1 e ]
+"40 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _T2ms `uc 1 e ]
+"41 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _T10ms `uc 1 e ]
+"42 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _T100ms `uc 1 e ]
+"44 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _DigitCounter `uc 1 e ]
+"45 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _uns16 `i 1 e ]
+"45 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _DispValue `i 1 e ]
+"46 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _Digit `uc -> 4 `i e ]
+"47 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _SecondsFlag `uc 1 e ]
+"48 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _StartButtonState `uc 1 e ]
+"49 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _StartButtonPrev `uc 1 e ]
+"50 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _StartButtonCounter `uc 1 e ]
+"51 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _StopButtonState `uc 1 e ]
+"52 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _StopButtonPrev `uc 1 e ]
+"53 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _StopButtonCounter `uc 1 e ]
+"54 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _State1 `uc 1 e ]
+[p mainexit ]
+"33 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _InitialiseHardware `(v 0 ef ]
+"34 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _InitialiseGlobals `(v 0 ef ]
+"37 C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C
+[v _debounce `(v 0 ef3`uc`*uc`*uc ]

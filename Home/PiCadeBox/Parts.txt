@@ -1,0 +1,42 @@
+Model 2 and Model 3 RPI from CM
+https://workspace.circuitmaker.com/Components#/1/raspberrypi/0//0
+
+Pro Mini
+https://workspace.circuitmaker.com/Components/Details/CMP-c37d092409061cba-17
+
+SOFT POWER SWITCH OPTIONS...
+https://au.pinterest.com/pin/28710516355232558/
+https://www.raspberrypi.org/forums/viewtopic.php?f=91&t=101598
+
+- monitor TX line - when low can kill power
+- how to switch power?  Relay?  Mosfet? (High Side Switch)
+
+
+PORT UASAGE
+Pi1 Model B - Dual USB
+
+USB  1 - add 1:4 hub
+	port 1 - controller 1 	(Front)
+	port 2 - controller 2 	(Front)
+	port 3 - DEBUG		(Rear)		
+		- Add hub here for USB Keyboard / mouse * or dongle for wireless keyboard combo
+	port 4 - USB (ROMS)	(Rear)
+
+USB  2 - wifi (hack board to supply MOAR-POWAH!)  
+
+JOB DONE!!
+
+Pi2/3 Model B - Quad USB
+
+PORT 1	USB (ROMS)
+PORT 2  WiFi (2 only, 3 uses onboard wifi)
+PORT 3  ADD A HUB.... HDMI comes out back port is internal... dang it
+PORT 4
+
+USE A  MOSFET TO SWITCH POWER
+
+LOW SIDE SWITCHING
+https://arduinodiy.wordpress.com/2012/05/02/using-mosfets-with-ttl-levels/
+
+High Side, Bill Herd and a Raspberry P\i, winnning!
+http://hackaday.com/2015/09/16/learn-and-build-a-high-side-switch/

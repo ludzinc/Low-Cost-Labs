@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [PiCadeConsole.PrjPcb]
+   Generated File[HMDI.TXT]
+   Generated File[HMDI.LDP]
+   Generated File[HMDI.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 12:49:15 PM On 25/09/2017

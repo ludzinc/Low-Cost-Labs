@@ -102,7 +102,11 @@
         console.log("Config Button Data Info recieved");
         processButtonConfig(jsonMessage);
       } else if (jsonMessage.echo == "configTemperature") {
-        document.getElementById("showTemp").innerHTML = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept) + "&#xb0;" + jsonMessage.mode;
+        var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept) ;
+        if(jsonMessage.mode == "F"){
+          displayTemperature = (displayTemperature * (9/5) + 32);
+        }
+        document.getElementById("showTemp").innerHTML = displayTemperature + "&#xb0;" + jsonMessage.mode;
         document.getElementById("showTemp").style.display = "block";
       } else if (jsonMessage.echo == "Button Settings Saved") {
         document.getElementById("pageStatus").innerHTML = "Settings Saved."

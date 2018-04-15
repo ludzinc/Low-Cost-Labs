@@ -1,0 +1,677 @@
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 1
+
+ADDR CODE  LINE SOURCE
+
+           0001 
+           0002 ; CC5X Version 3.2, Copyright (c) B Knudsen Data
+           0003 ; C compiler for the PICmicro family
+           0004 ; ************   8. Mar 2010   0:00  *************
+           0005 
+           0006 	processor  16F627A
+           0007 	radix  DEC
+           0008 
+     0000  0009 INDF        EQU   0x00
+     0003  0010 STATUS      EQU   0x03
+     0004  0011 FSR         EQU   0x04
+     0005  0012 PORTA       EQU   0x05
+     0085  0013 TRISA       EQU   0x85
+     0006  0014 PORTB       EQU   0x06
+     0086  0015 TRISB       EQU   0x86
+     000B  0016 INTCON      EQU   0x0B
+     0000  0017 Carry       EQU   0
+     0002  0018 Zero_       EQU   2
+     0005  0019 RP0         EQU   5
+     0006  0020 RP1         EQU   6
+     0007  0021 IRP         EQU   7
+     0081  0022 OPTION_REG  EQU   0x81
+     000C  0023 PIR1        EQU   0x0C
+     0012  0024 T2CON       EQU   0x12
+     001F  0025 CMCON       EQU   0x1F
+     008C  0026 PIE1        EQU   0x8C
+     008E  0027 PCON        EQU   0x8E
+     0092  0028 PR2         EQU   0x92
+     0000  0029 RB0         EQU   0
+     0001  0030 RB1         EQU   1
+     0002  0031 RB2         EQU   2
+     0003  0032 RB3         EQU   3
+     0006  0033 RB6         EQU   6
+     0007  0034 RB7         EQU   7
+     0001  0035 TMR2IF      EQU   1
+     002F  0036 FSRTemp     EQU   0x2F
+     0030  0037 T1ms        EQU   0x30
+     0031  0038 T10ms       EQU   0x31
+     0032  0039 T100ms      EQU   0x32
+     0070  0040 svrWREG     EQU   0x70
+     0020  0041 svrSTATUS   EQU   0x20
+     0021  0042 Delay       EQU   0x21
+     0022  0043 Run         EQU   0x22
+     0023  0044 State       EQU   0x23
+     0024  0045 NewSecond   EQU   0x24
+     0025  0046 Ticks       EQU   0x25
+     0026  0047 PIRState    EQU   0x26
+     0027  0048 PIRCounter  EQU   0x27
+     0028  0049 PIRTest     EQU   0x28
+     0029  0050 PushbuttonState EQU   0x29
+     002A  0051 PushbuttonCounter EQU   0x2A
+     002B  0052 PushbuttonTest EQU   0x2B
+     002C  0053 NewSecond_2 EQU   0x2C
+     002C  0054 DIPBank     EQU   0x2C
+     002D  0055 BANKMask    EQU   0x2D
+     002E  0056 Dipswitch   EQU   0x2E
+     002C  0057 test        EQU   0x2C
+     002D  0058 state       EQU   0x2D
+     002E  0059 counter     EQU   0x2E
+     002C  0060 delayTime   EQU   0x2C
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 2
+
+ADDR CODE  LINE SOURCE
+
+     002E  0061 mscheck     EQU   0x2E
+           0062 
+0000 2822  0063 	GOTO main
+           0064 
+           0065   ; FILE TT.c
+           0066 			;//#define   PIC16F627A
+           0067 			;
+           0068 			;//#include "16F627A.H"
+           0069 			;#include "INT16CXX.H"
+           0070 			;
+           0071 			;#pragma origin = 0x0004																	
+                   // CHECK THIS IN DATASHEET.  WHAT 0x0004 ???
+     0000  0072 	ORG 0x0004
+           0073 			;#pragma config        = 0b0011.1111.0101.1000   	// MCLR Pin is input
+           0074 			;//#pragma config        = 0b0011.1111.0111.1000   	// MCLR Pin is input
+           0075 			;
+           0076 			;#define PIR				RB0		// Input 	~ PIR (active high)
+           0077 			;#define Pushbutton      RB1     // Input   	~ On Board Pushbutton (active low)
+           0078 			;#define ValveOFF		RB2		// Output	~ Low side drive for H-Bridge
+           0079 			;#define ValveON 	 	RB3		// Output	~ High side drive for H-Bridge
+           0080 			;#define	DIPBank0		RB4		// Input / Output 	~ Active low to select DIP Switch 0 
+           0081 			;#define DIPBank1		RB5		// Input / Output	~ Active low to select DIP Switch 1
+           0082 			;#define Status0         RB6     // Output   ~ Green LED
+           0083 			;#define Status1         RB7     // Output   ~ Red LED
+           0084 			;
+           0085 			;#define BANK0			0b11101111		// Mask to set read line for DIP0 low
+           0086 			;#define BANK1			0b11011111		// Mask to set read line for DIP1 low
+           0087 			;#define BANK0Mask		0b11101111		// Mask to set TRISB to set read line for DIP0 to output.
+           0088 			;#define BANK1Mask		0b11011111		// Mask to set TRISB to set read line for DIP1 to output.
+           0089 			;
+           0090 			;#define Low				0
+           0091 			;#define High			1
+           0092 			;
+           0093 			;#define MAX_DEBOUNCE_COUNT 	10			// How many times do we need the changed state = 100 ms
+           0094 			;#define SolenoidDelay		250			// pulse on / off time for solenoid in milliseconds
+           0095 			;#define LEDDelay			1000		// time to flash test leds at start up
+           0096 			;
+           0097 			;char FSRTemp;
+           0098 			;char T1ms;								// millisecond counter
+           0099 			;char T10ms;								// 10's millisecond counter
+           0100 			;char T100ms;							// 100's millisecond counter
+           0101 			;
+           0102 			;#pragma codepage 0
+           0103 			;interrupt IntHandler() {
+           0104 IntHandler
+           0105 			;   int_save_registers
+0004 00F0  0106 	MOVWF svrWREG
+0005 0E03  0107 	SWAPF STATUS,W
+0006 1283  0108 	BCF   0x03,RP0
+0007 1303  0109 	BCF   0x03,RP1
+0008 00A0  0110 	MOVWF svrSTATUS
+           0111 			;   FSRTemp = FSR;
+0009 0804  0112 	MOVF  FSR,W
+000A 00AF  0113 	MOVWF FSRTemp
+           0114 			;   
+           0115 			;	if (TMR2IF == 1) {
+000B 1C8C  0116 	BTFSS 0x0C,TMR2IF
+000C 281B  0117 	GOTO  m002
+           0118 			;		T1ms++;
+000D 0AB0  0119 	INCF  T1ms,1
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 3
+
+ADDR CODE  LINE SOURCE
+
+           0120 			;			if(T1ms == 10) {
+000E 0830  0121 	MOVF  T1ms,W
+000F 3A0A  0122 	XORLW .10
+0010 1D03  0123 	BTFSS 0x03,Zero_
+0011 281A  0124 	GOTO  m001
+           0125 			;				T10ms++;
+0012 0AB1  0126 	INCF  T10ms,1
+           0127 			;				T1ms = 0;
+0013 01B0  0128 	CLRF  T1ms
+           0129 			;				if (T10ms == 10) {
+0014 0831  0130 	MOVF  T10ms,W
+0015 3A0A  0131 	XORLW .10
+0016 1D03  0132 	BTFSS 0x03,Zero_
+0017 281A  0133 	GOTO  m001
+           0134 			;					T100ms++;
+0018 0AB2  0135 	INCF  T100ms,1
+           0136 			;					T10ms = 0;
+0019 01B1  0137 	CLRF  T10ms
+           0138 			;//					if(T100ms == 10) {
+           0139 			;//						T100ms =0;			// Handled in main code.  Probably dumb to do this.
+           0140 			;//					}
+           0141 			;				}
+           0142 			;			}
+           0143 			;		TMR2IF = 0;
+001A 108C  0144 m001	BCF   0x0C,TMR2IF
+           0145 			;		}
+           0146 			;
+           0147 			;   FSR = FSRTemp;
+001B 082F  0148 m002	MOVF  FSRTemp,W
+001C 0084  0149 	MOVWF FSR
+           0150 			;   int_restore_registers
+001D 0E20  0151 	SWAPF svrSTATUS,W
+001E 0083  0152 	MOVWF STATUS
+001F 0EF0  0153 	SWAPF svrWREG,1
+0020 0E70  0154 	SWAPF svrWREG,W
+           0155 			;}
+0021 0009  0156 	RETFIE
+           0157 			;
+           0158 			;// Declare Function Prototypes
+           0159 			;void InitialiseHardware(void);
+           0160 			;void InitialiseGlobals(void);
+           0161 			;char CheckSeconds(void);
+           0162 			;char ReadDIP(char DIPBank, char BANKMask);	// Read required DIP switch
+           0163 			;void ValveControl(char ValveState); 
+           0164 			;void debounce(char test, char *state, char *counter);
+           0165 			;void delay(long delayTime);
+           0166 			;
+           0167 			;void main(void) {
+           0168 main
+           0169 			;
+           0170 			;char Delay;			// 0 - 255 second delay time
+           0171 			;char Run;			// 0 - 255 second on time (may restirct to 4 bits later, to allow option switches)
+           0172 			;char State;			// 0 = Waiting for trigger, 1 = Delay Count Down, 2 = Run Count Down
+           0173 			;char NewSecond;		// 1 = New second, process event in loop
+           0174 			;char Ticks;			// 10ms Counter
+           0175 			;
+           0176 			;
+           0177 			;char PIRState;       				// The current debounced state of the input
+           0178 			;char PIRCounter;   					// How many times have we seen the opposite state
+           0179 			;char PIRTest;           			// The current undebouced test input
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 4
+
+ADDR CODE  LINE SOURCE
+
+           0180 			;
+           0181 			;char PushbuttonState;       		// The current debounced state of the input
+           0182 			;char PushbuttonCounter;   			// How many times have we seen the opposite state
+           0183 			;char PushbuttonTest;        		// The current undebouced test input
+           0184 			;
+           0185 			;InitialiseHardware();
+0022 1683  0186 	BSF   0x03,RP0
+0023 1303  0187 	BCF   0x03,RP1
+0024 20A2  0188 	CALL  InitialiseHardware
+           0189 			;InitialiseGlobals();
+0025 1283  0190 	BCF   0x03,RP0
+0026 20BF  0191 	CALL  InitialiseGlobals
+           0192 			;
+           0193 			;	// Initialise variables
+           0194 			;
+           0195 			;	NewSecond = 0;
+0027 01A4  0196 	CLRF  NewSecond
+           0197 			;
+           0198 			;	Delay = 0;						// read DIP0 for Delay time
+0028 01A1  0199 	CLRF  Delay
+           0200 			;	Run = 0;						// Read DIP1 for Run Time
+0029 01A2  0201 	CLRF  Run
+           0202 			;	State = 0;
+002A 01A3  0203 	CLRF  State
+           0204 			;
+           0205 			;	PIRState = 0;					// Reset coutners and input states
+002B 01A6  0206 	CLRF  PIRState
+           0207 			;	PIRCounter = 0;
+002C 01A7  0208 	CLRF  PIRCounter
+           0209 			;	PIRTest = 0;
+002D 01A8  0210 	CLRF  PIRTest
+           0211 			;
+           0212 			;	PushbuttonState = 0;
+002E 01A9  0213 	CLRF  PushbuttonState
+           0214 			;	PushbuttonCounter = 0;
+002F 01AA  0215 	CLRF  PushbuttonCounter
+           0216 			;	PushbuttonTest = 0;
+0030 01AB  0217 	CLRF  PushbuttonTest
+           0218 			;
+           0219 			;	Ticks = 0;
+0031 01A5  0220 	CLRF  Ticks
+           0221 			;	
+           0222 			;	Status0 = 1;
+0032 1706  0223 	BSF   0x06,RB6
+           0224 			;	Status1 = 1;
+0033 1786  0225 	BSF   0x06,RB7
+           0226 			;	delay(LEDDelay);				// Display LEDs at startup
+0034 30E8  0227 	MOVLW .232
+0035 00AC  0228 	MOVWF delayTime
+0036 3003  0229 	MOVLW .3
+0037 00AD  0230 	MOVWF delayTime+1
+0038 2104  0231 	CALL  delay
+           0232 			;   	Status0 = 0;
+0039 1306  0233 	BCF   0x06,RB6
+           0234 			;  	Status1 = 0;
+003A 1386  0235 	BCF   0x06,RB7
+           0236 			;
+           0237 			;	while (1) {
+           0238 			;		NewSecond = CheckSeconds();
+003B 20C3  0239 m003	CALL  CheckSeconds
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 5
+
+ADDR CODE  LINE SOURCE
+
+003C 00A4  0240 	MOVWF NewSecond
+           0241 			;
+           0242 			;		if(Ticks != T10ms) {			// 10ms has expired
+003D 0825  0243 	MOVF  Ticks,W
+003E 0631  0244 	XORWF T10ms,W
+003F 1903  0245 	BTFSC 0x03,Zero_
+0040 2853  0246 	GOTO  m004
+           0247 			;			Ticks = T10ms;
+0041 0831  0248 	MOVF  T10ms,W
+0042 00A5  0249 	MOVWF Ticks
+           0250 			;			debounce(Pushbutton, &PushbuttonState, &PushbuttonCounter);		// Check inputs every 10mS
+0043 01AC  0251 	CLRF  test
+0044 1886  0252 	BTFSC 0x06,RB1
+0045 0AAC  0253 	INCF  test,1
+0046 3029  0254 	MOVLW .41
+0047 00AD  0255 	MOVWF state
+0048 302A  0256 	MOVLW .42
+0049 00AE  0257 	MOVWF counter
+004A 20E3  0258 	CALL  debounce
+           0259 			;			debounce(PIR, &PIRState, &PIRCounter);
+004B 01AC  0260 	CLRF  test
+004C 1806  0261 	BTFSC 0x06,RB0
+004D 0AAC  0262 	INCF  test,1
+004E 3026  0263 	MOVLW .38
+004F 00AD  0264 	MOVWF state
+0050 3027  0265 	MOVLW .39
+0051 00AE  0266 	MOVWF counter
+0052 20E3  0267 	CALL  debounce
+           0268 			;		}
+           0269 			;	
+           0270 			;		if(!PushbuttonState) {				// Input is Active Low.
+0053 08A9  0271 m004	MOVF  PushbuttonState,1
+0054 1D03  0272 	BTFSS 0x03,Zero_
+0055 2861  0273 	GOTO  m005
+           0274 			;ValveON = 1;
+0056 1586  0275 	BSF   0x06,RB3
+           0276 			;			State = 0;
+0057 01A3  0277 	CLRF  State
+           0278 			;			Status0 = 1;
+0058 1706  0279 	BSF   0x06,RB6
+           0280 			;			Status1 = 1;					// Blink LED to show reinitalise has happened.	
+0059 1786  0281 	BSF   0x06,RB7
+           0282 			;			delay(150);
+005A 3096  0283 	MOVLW .150
+005B 00AC  0284 	MOVWF delayTime
+005C 01AD  0285 	CLRF  delayTime+1
+005D 2104  0286 	CALL  delay
+           0287 			;			Status0 = 0;
+005E 1306  0288 	BCF   0x06,RB6
+           0289 			;			Status1 = 0;
+005F 1386  0290 	BCF   0x06,RB7
+           0291 			;ValveON = 0;
+0060 1186  0292 	BCF   0x06,RB3
+           0293 			;		}
+           0294 			;
+           0295 			;		switch (State) {
+0061 0823  0296 m005	MOVF  State,W
+0062 1903  0297 	BTFSC 0x03,Zero_
+0063 286B  0298 	GOTO  m006
+0064 3A01  0299 	XORLW .1
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 6
+
+ADDR CODE  LINE SOURCE
+
+0065 1903  0300 	BTFSC 0x03,Zero_
+0066 287A  0301 	GOTO  m007
+0067 3A03  0302 	XORLW .3
+0068 1903  0303 	BTFSC 0x03,Zero_
+0069 288D  0304 	GOTO  m009
+006A 28A0  0305 	GOTO  m011
+           0306 			;  			case 0:							// Waiting for input trigger (State 0)
+           0307 			;	   			if(PIRState) {				// Check PIR input
+006B 08A6  0308 m006	MOVF  PIRState,1
+006C 1903  0309 	BTFSC 0x03,Zero_
+006D 283B  0310 	GOTO  m003
+           0311 			;					State = 1;				// If active move to next state					
+006E 3001  0312 	MOVLW .1
+006F 00A3  0313 	MOVWF State
+           0314 			;					Delay = ReadDIP(BANK0, BANK0Mask);		// Get Delay Time from DIP0
+0070 30EF  0315 	MOVLW .239
+0071 00AC  0316 	MOVWF DIPBank
+0072 20CF  0317 	CALL  ReadDIP
+0073 00A1  0318 	MOVWF Delay
+           0319 			;					Run = ReadDIP(BANK1, BANK1Mask);		// Get Run time from DIP1
+0074 30DF  0320 	MOVLW .223
+0075 00AC  0321 	MOVWF DIPBank
+0076 20CF  0322 	CALL  ReadDIP
+0077 00A2  0323 	MOVWF Run
+           0324 			;					T100ms = 0;				// Reset 'edge' of seconds counter
+0078 01B2  0325 	CLRF  T100ms
+           0326 			;					}
+           0327 			;				break;
+0079 283B  0328 	GOTO  m003
+           0329 			;  			case 1:							// Delay and then pulse solenoid on (State 1)
+           0330 			;				if(NewSecond) {				// A new second has expired
+007A 08A4  0331 m007	MOVF  NewSecond,1
+007B 1903  0332 	BTFSC 0x03,Zero_
+007C 283B  0333 	GOTO  m003
+           0334 			;					if(Delay == 0) {		// Delay Time has now expired
+007D 08A1  0335 	MOVF  Delay,1
+007E 1D03  0336 	BTFSS 0x03,Zero_
+007F 288A  0337 	GOTO  m008
+           0338 			;						ValveON = 1;
+0080 1586  0339 	BSF   0x06,RB3
+           0340 			;						Status1 = 1;
+0081 1786  0341 	BSF   0x06,RB7
+           0342 			;						delay(SolenoidDelay);
+0082 30FA  0343 	MOVLW .250
+0083 00AC  0344 	MOVWF delayTime
+0084 01AD  0345 	CLRF  delayTime+1
+0085 2104  0346 	CALL  delay
+           0347 			;						ValveON = 0;
+0086 1186  0348 	BCF   0x06,RB3
+           0349 			;						Status1 = 0;						
+0087 1386  0350 	BCF   0x06,RB7
+           0351 			;						State = 2;
+0088 3002  0352 	MOVLW .2
+0089 00A3  0353 	MOVWF State
+           0354 			;					}
+           0355 			;					Delay--;				// Decrement Delay counter
+008A 03A1  0356 m008	DECF  Delay,1
+           0357 			;					NewSecond = 0;		
+008B 01A4  0358 	CLRF  NewSecond
+           0359 			;				}
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 7
+
+ADDR CODE  LINE SOURCE
+
+           0360 			;				break;
+008C 283B  0361 	GOTO  m003
+           0362 			;  			case 2:							
+           0363 			;				if(NewSecond) {				// A new second has expired
+008D 08A4  0364 m009	MOVF  NewSecond,1
+008E 1903  0365 	BTFSC 0x03,Zero_
+008F 283B  0366 	GOTO  m003
+           0367 			;					NewSecond = 0;		
+0090 01A4  0368 	CLRF  NewSecond
+           0369 			;					if(Run == 0) {			// Delay Time has now expired
+0091 08A2  0370 	MOVF  Run,1
+0092 1D03  0371 	BTFSS 0x03,Zero_
+0093 289E  0372 	GOTO  m010
+           0373 			;						ValveOFF = 1;
+0094 1506  0374 	BSF   0x06,RB2
+           0375 			;						Status1 = 1;
+0095 1786  0376 	BSF   0x06,RB7
+           0377 			;						delay(SolenoidDelay);
+0096 30FA  0378 	MOVLW .250
+0097 00AC  0379 	MOVWF delayTime
+0098 01AD  0380 	CLRF  delayTime+1
+0099 2104  0381 	CALL  delay
+           0382 			;						ValveOFF = 0;
+009A 1106  0383 	BCF   0x06,RB2
+           0384 			;						Status1 = 0;
+009B 1386  0385 	BCF   0x06,RB7
+           0386 			;						State = 3;
+009C 3003  0387 	MOVLW .3
+009D 00A3  0388 	MOVWF State
+           0389 			;					}
+           0390 			;					Run--;					// Decrement Delay counter
+009E 03A2  0391 m010	DECF  Run,1
+           0392 			;				}
+           0393 			;				break;
+009F 283B  0394 	GOTO  m003
+           0395 			;			default:
+           0396 			;    			State=0;					// Reset and start again
+00A0 01A3  0397 m011	CLRF  State
+           0398 			;			   	break;
+00A1 283B  0399 	GOTO  m003
+           0400 			;		}// end switch (State)
+           0401 			;	} //end While(1)
+           0402 			;}// end main()
+           0403 			;
+           0404 			;
+           0405 			;void InitialiseHardware(void) {
+           0406 InitialiseHardware
+           0407 			;  
+           0408 			;	TRISA  = 0b11111111; 				// PORTA All HIGHZ (Input)
+00A2 30FF  0409 	MOVLW .255
+00A3 0085  0410 	MOVWF TRISA
+           0411 			;	TRISB  = 0b00110011;      			// PORTB (1:0) = INPUT
+00A4 3033  0412 	MOVLW .51
+00A5 0086  0413 	MOVWF TRISB
+           0414 			;	PORTB  = 0b00000000;				// Set all outputs low
+00A6 1283  0415 	BCF   0x03,RP0
+00A7 0186  0416 	CLRF  PORTB
+           0417 			;	OPTION = 0b10001000;   				// No weak pull ups, prescaler assigned to WDT
+00A8 3088  0418 	MOVLW .136
+00A9 1683  0419 	BSF   0x03,RP0
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 8
+
+ADDR CODE  LINE SOURCE
+
+00AA 0081  0420 	MOVWF OPTION_REG
+           0421 			;   	INTCON = 0b11000000;				// TMR2 used to provide 1ms ticks.
+00AB 30C0  0422 	MOVLW .192
+00AC 008B  0423 	MOVWF INTCON
+           0424 			;	CMCON  = 0b00000111;				// Enable RA0:3 as Digital Inputs
+00AD 3007  0425 	MOVLW .7
+00AE 1283  0426 	BCF   0x03,RP0
+00AF 009F  0427 	MOVWF CMCON
+           0428 			;	PCON   = 0b00001000;				// Set internal osciallator to 4MHz
+00B0 3008  0429 	MOVLW .8
+00B1 1683  0430 	BSF   0x03,RP0
+00B2 008E  0431 	MOVWF PCON
+           0432 			;	T2CON  = 0b00000101;				// TMR2 on, prescale = 1:4 (4us ticks with 4MHz oscillator), and postscale = 0
+00B3 3005  0433 	MOVLW .5
+00B4 1283  0434 	BCF   0x03,RP0
+00B5 0092  0435 	MOVWF T2CON
+           0436 			;	PIE1   = 0b00000010;				// Bit 1 enables TMR2 = PR2 interface
+00B6 3002  0437 	MOVLW .2
+00B7 1683  0438 	BSF   0x03,RP0
+00B8 008C  0439 	MOVWF PIE1
+           0440 			;	PIR1   = 0b00000000;				// Read this to see if TMR2 = PR2 flag is set
+00B9 1283  0441 	BCF   0x03,RP0
+00BA 018C  0442 	CLRF  PIR1
+           0443 			;	PR2 = 250;							// TMR2 match value, for 1ms ticks
+00BB 30FA  0444 	MOVLW .250
+00BC 1683  0445 	BSF   0x03,RP0
+00BD 0092  0446 	MOVWF PR2
+           0447 			;}
+00BE 0008  0448 	RETURN
+           0449 			;
+           0450 			;void InitialiseGlobals(void) {
+           0451 InitialiseGlobals
+           0452 			;
+           0453 			;	T1ms = 0;							// Reset Timers
+00BF 01B0  0454 	CLRF  T1ms
+           0455 			;	T10ms = 0;
+00C0 01B1  0456 	CLRF  T10ms
+           0457 			;	T100ms = 0;
+00C1 01B2  0458 	CLRF  T100ms
+           0459 			;}
+00C2 0008  0460 	RETURN
+           0461 			;
+           0462 			;char CheckSeconds(void) {
+           0463 CheckSeconds
+           0464 			;
+           0465 			;char NewSecond;
+           0466 			;
+           0467 			;NewSecond = 0;
+00C3 01AC  0468 	CLRF  NewSecond_2
+           0469 			;		if (T100ms > 9) {				
+00C4 300A  0470 	MOVLW .10
+00C5 0232  0471 	SUBWF T100ms,W
+00C6 1C03  0472 	BTFSS 0x03,Carry
+00C7 28CD  0473 	GOTO  m012
+           0474 			;			T100ms = 0;
+00C8 01B2  0475 	CLRF  T100ms
+           0476 			;			NewSecond=1;
+00C9 3001  0477 	MOVLW .1
+00CA 00AC  0478 	MOVWF NewSecond_2
+           0479 			;			Status0=!Status0;			// Keep this in the final code so you can see device is running.
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 9
+
+ADDR CODE  LINE SOURCE
+
+00CB 3040  0480 	MOVLW .64
+00CC 0686  0481 	XORWF PORTB,1
+           0482 			;		}
+           0483 			;
+           0484 			;	return NewSecond;
+00CD 082C  0485 m012	MOVF  NewSecond_2,W
+00CE 0008  0486 	RETURN
+           0487 			;}	
+           0488 			;
+           0489 			;char ReadDIP(char DIPBank, char BANKMask) {
+           0490 ReadDIP
+00CF 00AD  0491 	MOVWF BANKMask
+           0492 			;
+           0493 			;	char Dipswitch;
+           0494 			;	Dipswitch = 0;	
+00D0 01AE  0495 	CLRF  Dipswitch
+           0496 			;
+           0497 			;	TRISB = TRISB | 0b00110000;		// Set Both DIP control Lines as Inputs, leaving other as set previously
+00D1 3030  0498 	MOVLW .48
+00D2 1683  0499 	BSF   0x03,RP0
+00D3 0486  0500 	IORWF TRISB,1
+           0501 			;	TRISB = TRISB & BANKMask;		// Set RB4 or RB5 as OUTPUT, as per mask
+00D4 1283  0502 	BCF   0x03,RP0
+00D5 082D  0503 	MOVF  BANKMask,W
+00D6 1683  0504 	BSF   0x03,RP0
+00D7 0586  0505 	ANDWF TRISB,1
+           0506 			;	PORTB = PORTB & DIPBank;		// Set RB4 or RB5 pin low, to enable read of that bank
+00D8 1283  0507 	BCF   0x03,RP0
+00D9 082C  0508 	MOVF  DIPBank,W
+00DA 0586  0509 	ANDWF PORTB,1
+           0510 			;	Dipswitch = ~PORTA;				// Read PORTA = DIPx Setting, but invert bits as DIP switches are active low
+00DB 0905  0511 	COMF  PORTA,W
+00DC 00AE  0512 	MOVWF Dipswitch
+           0513 			;	TRISB = TRISB | 0b00110000;		// Exit ensuring both DIP control lines are left as inputs (High Z)
+00DD 3030  0514 	MOVLW .48
+00DE 1683  0515 	BSF   0x03,RP0
+00DF 0486  0516 	IORWF TRISB,1
+           0517 			;
+           0518 			;	return Dipswitch;
+00E0 1283  0519 	BCF   0x03,RP0
+00E1 082E  0520 	MOVF  Dipswitch,W
+00E2 0008  0521 	RETURN
+           0522 			;}
+           0523 			;
+           0524 			;//void ValveControl(char ValveState) {
+           0525 			;
+           0526 			;//	ValveState = 1;
+           0527 			;//	Status1=1;
+           0528 			;//	delay(SolenoidDelay);
+           0529 			;//	Status1=0;
+           0530 			;//	ValveState = 0;
+           0531 			;
+           0532 			;//}// End			
+           0533 			;
+           0534 			;
+           0535 			;void debounce(char test, char *state, char *counter) {
+           0536 debounce
+           0537 			;	if ((*state) != test) {
+00E3 1383  0538 	BCF   0x03,IRP
+00E4 082D  0539 	MOVF  state,W
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 10
+
+ADDR CODE  LINE SOURCE
+
+00E5 0084  0540 	MOVWF FSR
+00E6 0800  0541 	MOVF  INDF,W
+00E7 062C  0542 	XORWF test,W
+00E8 1903  0543 	BTFSC 0x03,Zero_
+00E9 28FF  0544 	GOTO  m013
+           0545 			;   	(*counter)++;
+00EA 1383  0546 	BCF   0x03,IRP
+00EB 082E  0547 	MOVF  counter,W
+00EC 0084  0548 	MOVWF FSR
+00ED 0A80  0549 	INCF  INDF,1
+           0550 			;		if ((*counter) >= MAX_DEBOUNCE_COUNT) {
+00EE 1383  0551 	BCF   0x03,IRP
+00EF 082E  0552 	MOVF  counter,W
+00F0 0084  0553 	MOVWF FSR
+00F1 300A  0554 	MOVLW .10
+00F2 0200  0555 	SUBWF INDF,W
+00F3 1C03  0556 	BTFSS 0x03,Carry
+00F4 2903  0557 	GOTO  m014
+           0558 			;			(*counter) = 0;
+00F5 1383  0559 	BCF   0x03,IRP
+00F6 082E  0560 	MOVF  counter,W
+00F7 0084  0561 	MOVWF FSR
+00F8 0180  0562 	CLRF  INDF
+           0563 			;			(*state) = test;
+00F9 1383  0564 	BCF   0x03,IRP
+00FA 082D  0565 	MOVF  state,W
+00FB 0084  0566 	MOVWF FSR
+00FC 082C  0567 	MOVF  test,W
+00FD 0080  0568 	MOVWF INDF
+           0569 			;		}
+           0570 			;	} else {
+00FE 2903  0571 	GOTO  m014
+           0572 			;		(*counter) = 0;
+00FF 1383  0573 m013	BCF   0x03,IRP
+0100 082E  0574 	MOVF  counter,W
+0101 0084  0575 	MOVWF FSR
+0102 0180  0576 	CLRF  INDF
+           0577 			;	}
+           0578 			;}
+0103 0008  0579 m014	RETURN
+           0580 			;
+           0581 			;void delay(long delayTime) {				// delay for 'delayTime' in milliseconds, up to 65535!
+           0582 delay
+           0583 			;
+           0584 			;	char mscheck;
+           0585 			;	mscheck = 0;
+0104 01AE  0586 	CLRF  mscheck
+           0587 			;
+           0588 			;	while (delayTime >0 ){
+0105 1BAD  0589 m015	BTFSC delayTime+1,7
+0106 2916  0590 	GOTO  m017
+0107 082C  0591 	MOVF  delayTime,W
+0108 042D  0592 	IORWF delayTime+1,W
+0109 1903  0593 	BTFSC 0x03,Zero_
+010A 2916  0594 	GOTO  m017
+           0595 			;		mscheck=T1ms;
+010B 0830  0596 	MOVF  T1ms,W
+010C 00AE  0597 	MOVWF mscheck
+           0598 			;		while(mscheck == T1ms) {
+010D 082E  0599 m016	MOVF  mscheck,W
+CC5X Version 3.2,   File: TT.c                 8. Mar 2010   0:00   Page 11
+
+ADDR CODE  LINE SOURCE
+
+010E 0630  0600 	XORWF T1ms,W
+010F 1903  0601 	BTFSC 0x03,Zero_
+           0602 			;			};								// wait for TMR2 to overflow, not interrupt driven
+0110 290D  0603 	GOTO  m016
+           0604 			;		delayTime--;						// decrement dealy, exit if = 0
+0111 03AC  0605 	DECF  delayTime,1
+0112 0A2C  0606 	INCF  delayTime,W
+0113 1903  0607 	BTFSC 0x03,Zero_
+0114 03AD  0608 	DECF  delayTime+1,1
+           0609 			;	} 
+0115 2905  0610 	GOTO  m015
+           0611 			;}
+0116 0008  0612 m017	RETURN
+           0613 
+     0000  0614 	ORG 0x2007
+2007 3F58  0615 	DATA 3F58H
+     0000  0616 	END
+     0000  0617 
+     0000  0618 
+     0000  0619 ; *** KEY INFO ***
+     0000  0620 
+     0000  0621 ; 0x0004   30 word(s)  2 % : IntHandler
+     0000  0622 ; 0x00A2   29 word(s)  2 % : InitialiseHardware
+     0000  0623 ; 0x00BF    4 word(s)  0 % : InitialiseGlobals
+     0000  0624 ; 0x00C3   12 word(s)  1 % : CheckSeconds
+     0000  0625 ; 0x00CF   20 word(s)  1 % : ReadDIP
+     0000  0626 ; 0x00E3   33 word(s)  3 % : debounce
+     0000  0627 ; 0x0104   19 word(s)  1 % : delay
+     0000  0628 ; 0x0022  128 word(s) 12 % : main
+     0000  0629 
+     0000  0630 ; RAM usage: 20 bytes (16 local), 204 bytes free
+     0000  0631 ; Maximum call level: 1 (+1 for interrupt)
+     0000  0632 ; Total of 276 code words (26 %)

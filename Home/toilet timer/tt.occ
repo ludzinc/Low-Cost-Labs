@@ -1,0 +1,22 @@
+CC5X Version 3.2, Copyright (c) B Knudsen Data, Norway 1992-2004, No. 1654
+ --> EXTENDED edition, 8-32 bit int, 16-32 bit float, 8k code
+TT.c:
+  8. Mar 2010   0:00
+ Chip = 16F627A
+ RAM : -------- -------- -------- -------- ======== =======. ...***** ********
+  40h: ******** ******** ******** ******** ******** ******** =******* ********
+  80h: -------- -------- -------- -------- ******** ******** ******** ********
+  C0h: ******** ******** ******** ******** ******** ******** -------- --------
+ 100h: -------- -------- -------- -------- ******** ******** ******** ********
+ 140h: ******** ********
+RAM usage: 20 bytes (16 local), 204 bytes free
+ File 'TT.fcs'
+ Optimizing - removed 5 instructions (-1 %)
+ File 'TT.var'
+Warning[1] C:\CC5x\Projects\Toilet Timer\TT.c 39 : FSR saved but not changed in 'IntHandler'
+ File 'TT.asm'
+ File 'TT.lst'
+ File 'TT.cod'
+ File 'TT.occ'
+ File 'TT.hex'
+Total of 276 code words (26 %)

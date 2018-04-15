@@ -145,7 +145,11 @@
     function processTemperature() {
       document.getElementById("pageStatus").style.visibility = "hidden";
       console.log(jsonMessage.echo, " request answered.  Processing Temperature Calibration now.");
-      document.getElementById("showTemp").innerHTML = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept) + "&#xb0;" + jsonMessage.mode;
+      var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept) ;
+      if(jsonMessage.mode == "F"){
+        displayTemperature = (displayTemperature * (9/5) + 32);
+      }
+      document.getElementById("showTemp").innerHTML = displayTemperature + "&#xb0;" + jsonMessage.mode;
       document.getElementById("showTemp").style.display = "block";
       document.getElementById("tempSlope").value = jsonMessage.slope;
       document.getElementById("tempIntercept").value = jsonMessage.intercept;

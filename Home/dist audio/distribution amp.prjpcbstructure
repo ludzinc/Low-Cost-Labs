@@ -1,0 +1,4 @@
+Record=SheetSymbol|SourceDocument=Distribution Amp.SchDoc|Designator=U_AUDIO|SchDesignator=U_AUDIO|FileName=AUDIO.SchDoc|SymbolType=Normal|RawFileName=AUDIO.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Distribution Amp.SchDoc|Designator=U_DC POWER|SchDesignator=U_DC POWER|FileName=DC POWER.SchDoc|SymbolType=Normal|RawFileName=DC POWER.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Distribution Amp.SchDoc|Designator=U_DIGITAL|SchDesignator=U_DIGITAL|FileName=DIGITAL.SchDoc|SymbolType=Normal|RawFileName=DIGITAL.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=TopLevelDocument|FileName=Distribution Amp.SchDoc

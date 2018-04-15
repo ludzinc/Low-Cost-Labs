@@ -1,0 +1,9 @@
+_debounce: CODE, 974 0 112
+_main: CODE, 28 0 424
+__initialization: CODE, 1276 0 12
+_isr: CODE, 8 0 756
+_OpenTimer2: CODE, 1246 0 30
+___lwmod: CODE, 1086 0 92
+_InitialiseGlobals: CODE, 764 0 210
+_InitialiseHardware: CODE, 1178 0 68
+Total: 1704

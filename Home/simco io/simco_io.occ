@@ -1,0 +1,24 @@
+CC5X Version 3.2, Copyright (c) B Knudsen Data, Norway 1992-2004, No. 1654
+ --> EXTENDED edition, 8-32 bit int, 16-32 bit float, 8k code
+SIMCO_IO.C:
+ 22. Dec 2010  17:16
+ Chip = 16F627A
+Warning[1] C:\Simon\CC5x\Projects\SIMCO IO\SIMCO_IO.C 417 : Local variables and parameters in uncalled functions are not allocated (4)
+ (The application contains non-library functions that are not called. Local
+ variables in these functions (option -wU) are not allocated to save space)
+ RAM : -------- -------- -------- -------- ======== ======== ======== ........
+  40h: ........ ........ ........ ........ ........ ******** =******* ********
+  80h: -------- -------- -------- -------- ******** ******** ******** ********
+  C0h: ******** ******** ******** ******** ******** ******** -------- --------
+ 100h: -------- -------- -------- -------- ******** ******** ******** ********
+ 140h: ******** ********
+RAM usage: 73 bytes (25 local), 151 bytes free
+ File 'SIMCO_IO.fcs'
+ Optimizing - removed 11 instructions (-2 %)
+ File 'SIMCO_IO.var'
+ File 'SIMCO_IO.asm'
+ File 'SIMCO_IO.lst'
+ File 'SIMCO_IO.cod'
+ File 'SIMCO_IO.occ'
+ File 'SIMCO_IO.hex'
+Total of 485 code words (47 %)

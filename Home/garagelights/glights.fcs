@@ -1,0 +1,25 @@
+
+CC8E Version 1.3D, Copyright (c) B Knudsen Data.
+* FUNCTION CALL STRUCTURE
+
+F: lowPriorityIntServer   :#0 
+
+F: main                   :#0 
+    InitialiseHardware    : #1 
+    InitialiseGlobals     : #1 
+    debounce              : #1 
+
+F: InitialiseHardware     :#1 
+
+F: InitialiseGlobals      :#1 
+
+F: debounce               :#1 
+
+
+ L1  lowPriorityIntServer
+
+ L0  main
+ L1    InitialiseHardware
+ L1    InitialiseGlobals
+ L1    debounce
+

@@ -1,0 +1,14 @@
+Field=Comment~String~Comment~100|Field=Description~String~Description~100|Field=Designator~String~Designator~100|Field=Footprint~String~Footprint~100|Field=LibRef~String~LibRef~100|Field=Quantity~Integer~Quantity~100|ReportField=Currency~<none>|ReportField=ProductionQuantity~1|ReportField=ProjectFileName~Barun module.PrjPcb|ReportField=ProjectFullPath~C:\Simon\SIMCO\Barun Module\Barun module.PrjPcb|ReportField=Title~Bill of Materials For Project [Barun module.PrjPcb] (No PCB Document Selected)|ReportField=TotalQuantity~29|ReportField=ReportTime~1:21:30 PM|ReportField=ReportDate~16/02/2012|ReportField=ReportDateTime~16/02/2012 1:21:30 PM|ReportField=OutputName~Bill of Materials|ReportField=OutputType~BOM_PartType|ReportField=GeneratorName~BOM|ReportField=GeneratorDescription~Bill of Materials|ReportField=VariantName~None|ReportField=Address1~|ReportField=Address2~|ReportField=Address3~|ReportField=Address4~|ReportField=ApprovedBy~|ReportField=Author~|ReportField=CheckedBy~|ReportField=CompanyName~|ReportField=CurrentDate~16/02/2012|ReportField=CurrentTime~1:21:26 PM|ReportField=Date~|ReportField=DocumentFullPathAndName~C:\Simon\SIMCO\Barun Module\Barun Module.SchDoc|ReportField=DocumentName~Barun Module.SchDoc|ReportField=DocumentNumber~|ReportField=DrawnBy~|ReportField=Engineer~|ReportField=ImagePath~|ReportField=ModifiedDate~21/10/2010|ReportField=Organization~|ReportField=ProjectName~Barun module.PrjPcb|ReportField=Revision~|ReportField=Rule~|ReportField=SheetNumber~|ReportField=SheetTotal~|ReportField=Time~|ReportField=Title~|ReportField=DataSourceFileName~Barun module.PrjPcb|ReportField=DataSourceFullPath~C:\Simon\SIMCO\Barun Module\Barun module.PrjPcb
+100nF|CAPACITOR SMD 0603|C1, C4, C5|CAP (3D) - 0603|CAP, CAP SMD 0603 100nF|3
+Cap|Capacitor|C2|CAP (3D) - 0603|Cap|1
+10uF|CAPACITOR POLARISED TAG B CASE|C3|TAG B CASE|Cap Pol|1
+S1M|DIODE, POWER|D1|DO-214AC|DIODE|1
+DC56-51PBWA/A|14.22 mm 2-Digit General Purpose Blue 7-Segment Display|DS1, DS2|K-18 (3D)|HDSP-521A|2
+TAG CONNECT||ICSP1|ICSP - TAG CONNECT|ICSP - TAG CONNECT|1
+Header 4|Header, 4-Pin|P1|4 x 5.08mm|Header 4|1
+MMUN2211LT1|MMUN2211LT1|Q1, Q2, Q3, Q4|SOT23-3L|NPN DIGITAL TRANSISTOR|4
+1k|RESISTOR SMD 0603 1k|R1, R2, R3, R4, R5, R6, R7, R8|RES (3D) - 0603|RES SMD 0603 1k|8
+10k|RESISTOR SMD 0603 10k|R9, R10, R11, R12|RES (3D) - 0603|RES SMD 0603 10k|4
+MC14543BD|BCD-to-7-Segment Latch/Decoder/Driver for Liquid Crystals|U1|751B-05_N|MC14543BD|1
+PIC16F627-04I/P|FLASH-Based 8-Bit CMOS Microcontroller, 1K (x14-Bit words) FLASH, 224 Bytes RAM, 4 MHz, 18-Pin PDIP, 3.0 to 5.5V Supply Range, Industrial Temperature|U2|SOIC-18|PIC16F627-04I/P|1
+LM7805CT|3-Terminal Positive Fixed Voltage Regulator|U3|TO-220|MC7805ACT|1

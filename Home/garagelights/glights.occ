@@ -1,0 +1,41 @@
+CC8E Version 1.3D, Copyright (c) B Knudsen Data, Norway 2001-2010
+ --> FREE edition, 8-16 bit int, 24 bit float, 128k code words, reduced optim.
+GLIGHTS.C:
+  2. Jul 2011  23:29
+Warning[1] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 5 : Unrecognized pragma directive 'config1'
+ (The #pragma directive is not recognized and therefore ignored)
+Warning[2] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 6 : Unrecognized pragma directive 'config2l'
+Warning[3] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 7 : Unrecognized pragma directive 'config2h'
+Warning[4] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 8 : Unrecognized pragma directive 'config3h'
+Warning[5] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 9 : Unrecognized pragma directive 'config4l'
+Warning[6] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 10 : Unrecognized pragma directive 'config5l'
+Warning[7] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 11 : Unrecognized pragma directive 'config5h'
+Warning[8] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 12 : Unrecognized pragma directive 'config6l'
+Warning[9] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 13 : Unrecognized pragma directive 'config6h'
+Warning[10] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 14 : Unrecognized pragma directive 'config7l'
+Warning[11] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 15 : Unrecognized pragma directive 'config7h'
+ Chip = 18F2321
+ RAM : ======== ======== =======. ........ ........ ........ .......* ********
+  40h: ******** ******** ******** ******** ******** ******** ******** ********
+  80h: ******** ******** ******** ******** ******** ******** ******** ********
+  C0h: ******** ******** ******** ******** ******** ******** ******** ********
+ Bank  0:201  1:256  bytes free
+RAM usage: 55 bytes (23 local), 457 bytes free
+ File 'GLIGHTS.fcs'
+ Optimizing - removed 43 code words (-15 %)
+ File 'GLIGHTS.var'
+Warning[12] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 64 : PCLATH saved but not changed in 'lowPriorityIntServer'
+Warning[13] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 65 : PCLATU saved but not changed in 'lowPriorityIntServer'
+Warning[14] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 68 : TBLPTRL(+H+U) saved but not changed in 'lowPriorityIntServer'
+Warning[15] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 69 : TABLAT saved but not changed in 'lowPriorityIntServer'
+Warning[16] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 66 : PRODL saved but not changed in 'lowPriorityIntServer'
+Warning[17] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 67 : PRODH saved but not changed in 'lowPriorityIntServer'
+Warning[18] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 62 : FSR1L(+H) saved but not changed in 'lowPriorityIntServer'
+Warning[19] C:\Simon\CC5x\Projects\GarageLights\GLIGHTS.C 63 : FSR2L(+H) saved but not changed in 'lowPriorityIntServer'
+ File 'GLIGHTS.asm'
+ File 'GLIGHTS.lst'
+ File 'GLIGHTS.cod'
+ File 'GLIGHTS.occ'
+ File 'GLIGHTS.hex'
+Total of 309 code words (7 %)
+ * Estimated CODE SIZE of full optimization: 296 code words (-4 %)

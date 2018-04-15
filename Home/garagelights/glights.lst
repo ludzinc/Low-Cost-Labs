@@ -1,0 +1,615 @@
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 1
+
+ADDR   CODE       LINE  SOURCE
+
+                  00001 
+                  00002 ; CC8E Version 1.3D, Copyright (c) B Knudsen Data
+                  00003 ; C compiler for the PIC18 microcontrollers
+                  00004 ; ************   2. Jul 2011  23:29  *************
+                  00005 
+                  00006 	processor  PIC18F2321
+                  00007 	radix  DEC
+                  00008 
+       0FFB       00009 PCLATU      EQU   0xFFB
+       0FFA       00010 PCLATH      EQU   0xFFA
+       0FF6       00011 TBLPTR      EQU   0xFF6
+       0FF5       00012 TABLAT      EQU   0xFF5
+       0FF4       00013 PRODH       EQU   0xFF4
+       0FF3       00014 PRODL       EQU   0xFF3
+       0FF2       00015 INTCON      EQU   0xFF2
+       0FEF       00016 INDF0       EQU   0xFEF
+       0FEE       00017 POSTINC0    EQU   0xFEE
+       0FE9       00018 FSR0        EQU   0xFE9
+       0FE1       00019 FSR1        EQU   0xFE1
+       0FE0       00020 BSR         EQU   0xFE0
+       0FD9       00021 FSR2        EQU   0xFD9
+       0FD8       00022 STATUS      EQU   0xFD8
+       0000       00023 Carry       EQU   0
+       0002       00024 Zero_       EQU   2
+       0FD3       00025 OSCCON      EQU   0xFD3
+       0FCB       00026 PR2         EQU   0xFCB
+       0FCA       00027 T2CON       EQU   0xFCA
+       0FC1       00028 ADCON1      EQU   0xFC1
+       0F9F       00029 IPR1        EQU   0xF9F
+       0F9D       00030 PIE1        EQU   0xF9D
+       0F94       00031 TRISC       EQU   0xF94
+       0F93       00032 TRISB       EQU   0xF93
+       0F92       00033 TRISA       EQU   0xF92
+       0F82       00034 PORTC       EQU   0xF82
+       0F81       00035 PORTB       EQU   0xF81
+       0F80       00036 PORTA       EQU   0xF80
+       0001       00037 TMR2IF      EQU   1
+       0000       00038 GREEN_LED   EQU   0
+       0002       00039 RED_LED     EQU   2
+       0002       00040 DOOR1       EQU   2
+       0003       00041 DOOR2       EQU   3
+       0000       00042 LIGHT       EQU   0
+       0018       00043 T1ms        EQU   0x18
+       0019       00044 T10ms       EQU   0x19
+       001A       00045 T100ms      EQU   0x1A
+       001E       00046 TIMERS      EQU   0x1E
+       002E       00047 OUTPUTS     EQU   0x2E
+       0036       00048 LoopCounter EQU   0x36
+       0000       00049 sv_FSR0     EQU   0x00
+       0002       00050 sv_FSR1     EQU   0x02
+       0004       00051 sv_FSR2     EQU   0x04
+       0006       00052 sv_PCLATH   EQU   0x06
+       0007       00053 sv_PCLATU   EQU   0x07
+       0008       00054 sv_PRODL    EQU   0x08
+       0009       00055 sv_PRODH    EQU   0x09
+       000A       00056 sv_TBLPTR   EQU   0x0A
+       000D       00057 sv_TABLAT   EQU   0x0D
+       000E       00058 svrSTATUS   EQU   0x0E
+       000F       00059 svrBSR      EQU   0x0F
+       0010       00060 svrWREG     EQU   0x10
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 2
+
+ADDR   CODE       LINE  SOURCE
+
+       0011       00061 i           EQU   0x11
+       0012       00062 temp        EQU   0x12
+       0013       00063 time        EQU   0x13
+       0014       00064 i_2         EQU   0x14
+       0014       00065 test        EQU   0x14
+       0015       00066 state       EQU   0x15
+       0016       00067 counter     EQU   0x16
+                  00068 
+000000 EF9E F000  00069 	GOTO main
+                  00070 
+                  00071   ; FILE GLIGHTS.C
+                  00072 			;#include "INT18XXX.H"
+                  00073 			;
+                  00074 			;#pragma origin = 0x0004																	
+                           // CHECK THIS IN DATASHEET.  WHAT 0x0004 ???
+       0000       00075 	ORG 0x0004
+                  00076 			;
+                  00077 			;#pragma config1  = 0b0000.1011			//  Internal Osciallator block, Clockouot RA6\
+                  00078 			;#pragma config2l = 0b0000.0000
+                  00079 			;#pragma config2h = 0b0000.0000			// not watchdog
+                  00080 			;#pragma config3h = 0b1000.0000			// mclr enabled
+                  00081 			;#pragma config4l = 0b1000.0000
+                  00082 			;#pragma config5l = 0b0000.0011
+                  00083 			;#pragma config5h = 0b1100.0000
+                  00084 			;#pragma config6l = 0b0000.0011
+                  00085 			;#pragma config6h = 0b1110.0000
+                  00086 			;#pragma config7l = 0b0000.0011
+                  00087 			;#pragma config7h = 0b0100.0000
+                  00088 			;
+                  00089 			;
+                  00090 			;
+                  00091 			;
+                  00092 			;
+                  00093 			;#pragma bit GREEN_LED @ LATB.0
+                  00094 			;#pragma bit RED_LED   @ LATB.2
+                  00095 			;
+                  00096 			;#pragma bit DOOR1	@ 	LATC.2
+                  00097 			;#pragma bit DOOR2	@	LATC.3
+                  00098 			;#pragma bit LIGHT	@	LATC.0
+                  00099 			;
+                  00100 			;#define MAX_DEBOUNCE_COUNT 	10			// How many times do we need the changed state 
+                  00101 			;#define DOOR1_RUNTIME		5			// 500ms
+                  00102 			;#define DOOR2_RUNTIME		5			// 500ms
+                  00103 			;#define LIGHTS_RUNTIME		50			// 5 seconds
+                  00104 			;
+                  00105 			;// Declare Function Prototypes
+                  00106 			;void InitialiseHardware(void);
+                  00107 			;void InitialiseGlobals(void);
+                  00108 			;void debounce(char test, char *state, char *counter);
+                  00109 			;
+                  00110 			;char FSRTemp;
+                  00111 			;char T1ms;								// 1 millisecond counter
+                  00112 			;char T10ms;								// 10's millisecond counter
+                  00113 			;char T100ms;							// 100's millisecond counter
+                  00114 			;
+                  00115 			;char StartButtonState;
+                  00116 			;char StartButtonPrev;
+                  00117 			;char StartButtonCounter;
+                  00118 			;
+                  00119 			;// DECALRE GOLBALS
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 3
+
+ADDR   CODE       LINE  SOURCE
+
+                  00120 			;
+                  00121 			;uns16	TIMERS[4];
+                  00122 			;char	INPUTS_RAW[4];
+                  00123 			;char	INPUTS_STATE[4];
+                  00124 			;char	OUTPUTS[4];
+                  00125 			;char	DebounceCounters[4];
+                  00126 			;
+                  00127 			;char 	LoopCounter;
+                  00128 			;
+                  00129 			;#pragma origin 0x18
+       0000       00130 	ORG 0x0018
+                  00131 			;interrupt lowPriorityIntServer(void)
+                  00132 			;{
+                  00133 lowPriorityIntServer
+                  00134 			;    // W, STATUS and BSR are saved by the next macro.
+                  00135 			;uns16 sv_FSR0 = FSR0;
+000018 CFE9 F000  00136 	MOVFF FSR0,sv_FSR0
+00001C CFEA F001  00137 	MOVFF FSR0+1,sv_FSR0+1
+                  00138 			;uns16 sv_FSR1 = FSR1;
+000020 CFE1 F002  00139 	MOVFF FSR1,sv_FSR1
+000024 CFE2 F003  00140 	MOVFF FSR1+1,sv_FSR1+1
+                  00141 			;uns16 sv_FSR2 = FSR2;
+000028 CFD9 F004  00142 	MOVFF FSR2,sv_FSR2
+00002C CFDA F005  00143 	MOVFF FSR2+1,sv_FSR2+1
+                  00144 			;uns8 sv_PCLATH = PCLATH;
+000030 CFFA F006  00145 	MOVFF PCLATH,sv_PCLATH
+                  00146 			;uns8 sv_PCLATU = PCLATU;
+000034 CFFB F007  00147 	MOVFF PCLATU,sv_PCLATU
+                  00148 			;uns8 sv_PRODL = PRODL;
+000038 CFF3 F008  00149 	MOVFF PRODL,sv_PRODL
+                  00150 			;uns8 sv_PRODH = PRODH;
+00003C CFF4 F009  00151 	MOVFF PRODH,sv_PRODH
+                  00152 			;uns24 sv_TBLPTR = TBLPTR;
+000040 CFF6 F00A  00153 	MOVFF TBLPTR,sv_TBLPTR
+000044 CFF7 F00B  00154 	MOVFF TBLPTR+1,sv_TBLPTR+1
+000048 CFF8 F00C  00155 	MOVFF TBLPTR+2,sv_TBLPTR+2
+                  00156 			;uns8 sv_TABLAT = TABLAT;
+00004C CFF5 F00D  00157 	MOVFF TABLAT,sv_TABLAT
+                  00158 			;    int_save_registers
+000050 CFD8 F00E  00159 	MOVFF STATUS,svrSTATUS
+000054 CFE0 F00F  00160 	MOVFF BSR,svrBSR
+000058 6E10       00161 	MOVWF svrWREG,0
+                  00162 			;    
+                  00163 			;	if (TMR2IF == 1) {
+00005A A29E       00164 	BTFSS 0xF9E,TMR2IF,0
+00005C D04D       00165 	BRA   m013
+                  00166 			;		T1ms++;
+00005E 2A18       00167 	INCF  T1ms,1,0
+                  00168 			;		if(T1ms == 10){
+000060 0E0A       00169 	MOVLW 10
+000062 6218       00170 	CPFSEQ T1ms,0
+000064 D048       00171 	BRA   m012
+                  00172 			;			T10ms++;
+000066 2A19       00173 	INCF  T10ms,1,0
+                  00174 			;			T1ms=0;
+000068 6A18       00175 	CLRF  T1ms,0
+                  00176 			;			if (T10ms == 10) {								
+00006A 0E0A       00177 	MOVLW 10
+00006C 6219       00178 	CPFSEQ T10ms,0
+00006E D043       00179 	BRA   m012
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 4
+
+ADDR   CODE       LINE  SOURCE
+
+                  00180 			;				T100ms++;
+000070 2A1A       00181 	INCF  T100ms,1,0
+                  00182 			;				T10ms = 0;
+000072 6A19       00183 	CLRF  T10ms,0
+                  00184 			;				GREEN_LED=!GREEN_LED;
+000074 708A       00185 	BTG   0xF8A,GREEN_LED,0
+                  00186 			;				for(LoopCounter=0;LoopCounter<3;LoopCounter++){
+000076 6A36       00187 	CLRF  LoopCounter,0
+000078 0E03       00188 m001	MOVLW 3
+00007A 6036       00189 	CPFSLT LoopCounter,0
+00007C D038       00190 	BRA   m011
+                  00191 			;					if(OUTPUTS[LoopCounter]>0){			// IF output flag has been set
+00007E 6AEA       00192 	CLRF  FSR0+1,0
+000080 0E2E       00193 	MOVLW 46
+000082 2436       00194 	ADDWF LoopCounter,W,0
+000084 6EE9       00195 	MOVWF FSR0,0
+000086 50EF       00196 	MOVF  INDF0,W,0
+000088 B4D8       00197 	BTFSC 0xFD8,Zero_,0
+00008A D005       00198 	BRA   m002
+                  00199 			;						OUTPUTS[LoopCounter]--;
+00008C 6AEA       00200 	CLRF  FSR0+1,0
+00008E 0E2E       00201 	MOVLW 46
+000090 2436       00202 	ADDWF LoopCounter,W,0
+000092 6EE9       00203 	MOVWF FSR0,0
+000094 06EF       00204 	DECF  INDF0,1,0
+                  00205 			;					}
+                  00206 			;					if(OUTPUTS[LoopCounter]>0){
+000096 6AEA       00207 m002	CLRF  FSR0+1,0
+000098 0E2E       00208 	MOVLW 46
+00009A 2436       00209 	ADDWF LoopCounter,W,0
+00009C 6EE9       00210 	MOVWF FSR0,0
+00009E 50EF       00211 	MOVF  INDF0,W,0
+0000A0 B4D8       00212 	BTFSC 0xFD8,Zero_,0
+0000A2 D014       00213 	BRA   m006
+                  00214 			;						switch(LoopCounter){
+0000A4 5036       00215 	MOVF  LoopCounter,W,0
+0000A6 B4D8       00216 	BTFSC 0xFD8,Zero_,0
+0000A8 D007       00217 	BRA   m003
+0000AA 0A01       00218 	XORLW 1
+0000AC B4D8       00219 	BTFSC 0xFD8,Zero_,0
+0000AE D006       00220 	BRA   m004
+0000B0 0A03       00221 	XORLW 3
+0000B2 B4D8       00222 	BTFSC 0xFD8,Zero_,0
+0000B4 D007       00223 	BRA   m005
+0000B6 D019       00224 	BRA   m010
+                  00225 			;							case 0:
+                  00226 			;								LIGHT=1;
+0000B8 808B       00227 m003	BSF   0xF8B,LIGHT,0
+                  00228 			;								break;
+0000BA D017       00229 	BRA   m010
+                  00230 			;							case 1:
+                  00231 			;								DOOR1=1;
+0000BC 848B       00232 m004	BSF   0xF8B,DOOR1,0
+                  00233 			;								OUTPUTS[0]=LIGHTS_RUNTIME;	
+0000BE 0E32       00234 	MOVLW 50
+0000C0 6E2E       00235 	MOVWF OUTPUTS,0
+                  00236 			;								break;
+0000C2 D013       00237 	BRA   m010
+                  00238 			;							case 2:
+                  00239 			;								DOOR2=1;
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 5
+
+ADDR   CODE       LINE  SOURCE
+
+0000C4 868B       00240 m005	BSF   0xF8B,DOOR2,0
+                  00241 			;								OUTPUTS[0]=LIGHTS_RUNTIME;
+0000C6 0E32       00242 	MOVLW 50
+0000C8 6E2E       00243 	MOVWF OUTPUTS,0
+                  00244 			;								break;
+0000CA D00F       00245 	BRA   m010
+                  00246 			;							default:
+                  00247 			;							 	break;	
+                  00248 			;							}
+                  00249 			;					}			 
+                  00250 			;					else {
+                  00251 			;						switch(LoopCounter){
+0000CC 5036       00252 m006	MOVF  LoopCounter,W,0
+0000CE B4D8       00253 	BTFSC 0xFD8,Zero_,0
+0000D0 D007       00254 	BRA   m007
+0000D2 0A01       00255 	XORLW 1
+0000D4 B4D8       00256 	BTFSC 0xFD8,Zero_,0
+0000D6 D006       00257 	BRA   m008
+0000D8 0A03       00258 	XORLW 3
+0000DA B4D8       00259 	BTFSC 0xFD8,Zero_,0
+0000DC D005       00260 	BRA   m009
+0000DE D005       00261 	BRA   m010
+                  00262 			;							case 0:
+                  00263 			;								LIGHT=0;
+0000E0 908B       00264 m007	BCF   0xF8B,LIGHT,0
+                  00265 			;								break;
+0000E2 D003       00266 	BRA   m010
+                  00267 			;							case 1:
+                  00268 			;								DOOR1=0;
+0000E4 948B       00269 m008	BCF   0xF8B,DOOR1,0
+                  00270 			;								break;
+0000E6 D001       00271 	BRA   m010
+                  00272 			;							case 2:
+                  00273 			;								DOOR2=0;
+0000E8 968B       00274 m009	BCF   0xF8B,DOOR2,0
+                  00275 			;								break;
+                  00276 			;							default:
+                  00277 			;							 	break;								
+                  00278 			;							 }									
+                  00279 			;					}		
+                  00280 			;				}
+0000EA 2A36       00281 m010	INCF  LoopCounter,1,0
+0000EC D7C5       00282 	BRA   m001
+                  00283 			;				if (T100ms == 10) {
+0000EE 0E0A       00284 m011	MOVLW 10
+0000F0 621A       00285 	CPFSEQ T100ms,0
+0000F2 D001       00286 	BRA   m012
+                  00287 			;					T100ms = 0;
+0000F4 6A1A       00288 	CLRF  T100ms,0
+                  00289 			;				}
+                  00290 			;			}
+                  00291 			;		}	
+                  00292 			;		TMR2IF = 0;
+0000F6 929E       00293 m012	BCF   0xF9E,TMR2IF,0
+                  00294 			;	}
+                  00295 			;FSR0 = sv_FSR0;
+0000F8 C000 FFE9  00296 m013	MOVFF sv_FSR0,FSR0
+0000FC C001 FFEA  00297 	MOVFF sv_FSR0+1,FSR0+1
+                  00298 			;FSR1 = sv_FSR1;
+000100 C002 FFE1  00299 	MOVFF sv_FSR1,FSR1
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 6
+
+ADDR   CODE       LINE  SOURCE
+
+000104 C003 FFE2  00300 	MOVFF sv_FSR1+1,FSR1+1
+                  00301 			;FSR2 = sv_FSR2;
+000108 C004 FFD9  00302 	MOVFF sv_FSR2,FSR2
+00010C C005 FFDA  00303 	MOVFF sv_FSR2+1,FSR2+1
+                  00304 			;PCLATH = sv_PCLATH;
+000110 C006 FFFA  00305 	MOVFF sv_PCLATH,PCLATH
+                  00306 			;PCLATU = sv_PCLATU;
+000114 C007 FFFB  00307 	MOVFF sv_PCLATU,PCLATU
+                  00308 			;PRODL = sv_PRODL;
+000118 C008 FFF3  00309 	MOVFF sv_PRODL,PRODL
+                  00310 			;PRODH = sv_PRODH;
+00011C C009 FFF4  00311 	MOVFF sv_PRODH,PRODH
+                  00312 			;TBLPTR = sv_TBLPTR;
+000120 C00A FFF6  00313 	MOVFF sv_TBLPTR,TBLPTR
+000124 C00B FFF7  00314 	MOVFF sv_TBLPTR+1,TBLPTR+1
+000128 C00C FFF8  00315 	MOVFF sv_TBLPTR+2,TBLPTR+2
+                  00316 			;TABLAT = sv_TABLAT;
+00012C C00D FFF5  00317 	MOVFF sv_TABLAT,TABLAT
+                  00318 			;   	int_restore_registers
+000130 5010       00319 	MOVF  svrWREG,W,0
+000132 C00F FFE0  00320 	MOVFF svrBSR,BSR
+000136 C00E FFD8  00321 	MOVFF svrSTATUS,STATUS
+                  00322 			;}
+00013A 0010       00323 	RETFIE
+                  00324 			;
+                  00325 			;
+                  00326 			;
+                  00327 			;void main(void) {
+                  00328 main
+                  00329 			;
+                  00330 			;int i = 0;
+00013C 6A11       00331 	CLRF  i,0
+                  00332 			;int temp = 0;
+00013E 6A12       00333 	CLRF  temp,0
+                  00334 			;int time = 0; 
+000140 6A13       00335 	CLRF  time,0
+                  00336 			;
+                  00337 			;	InitialiseHardware();
+000142 D841       00338 	RCALL InitialiseHardware
+                  00339 			;	InitialiseGlobals();
+000144 D855       00340 	RCALL InitialiseGlobals
+                  00341 			;
+                  00342 			;	while (1) {
+                  00343 			;	temp = PORTA;	
+000146 CF80 F012  00344 m014	MOVFF PORTA,temp
+                  00345 			;	for(i=0;i<3;i++){
+00014A 6A11       00346 	CLRF  i,0
+00014C BE11       00347 m015	BTFSC i,7,0
+00014E D003       00348 	BRA   m016
+000150 0E03       00349 	MOVLW 3
+000152 6011       00350 	CPFSLT i,0
+000154 D7F8       00351 	BRA   m014
+                  00352 			;		INPUTS_RAW[i]=temp&0x01;
+000156 6AEA       00353 m016	CLRF  FSR0+1,0
+000158 0E26       00354 	MOVLW 38
+00015A 2411       00355 	ADDWF i,W,0
+00015C 6EE9       00356 	MOVWF FSR0,0
+00015E 0E01       00357 	MOVLW 1
+000160 1412       00358 	ANDWF temp,W,0
+000162 6EEF       00359 	MOVWF INDF0,0
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 7
+
+ADDR   CODE       LINE  SOURCE
+
+                  00360 			;		if(INPUTS_RAW[i]==0){
+000164 6AEA       00361 	CLRF  FSR0+1,0
+000166 0E26       00362 	MOVLW 38
+000168 2411       00363 	ADDWF i,W,0
+00016A 6EE9       00364 	MOVWF FSR0,0
+00016C 50EF       00365 	MOVF  INDF0,W,0
+00016E A4D8       00366 	BTFSS 0xFD8,Zero_,0
+000170 D002       00367 	BRA   m017
+                  00368 			;			RED_LED = 1;
+000172 848A       00369 	BSF   0xF8A,RED_LED,0
+                  00370 			;			} else {
+000174 D001       00371 	BRA   m018
+                  00372 			;			RED_LED= 0;
+000176 948A       00373 m017	BCF   0xF8A,RED_LED,0
+                  00374 			;		}			 
+                  00375 			;		temp = temp >> 1;
+000178 80D8       00376 m018	BSF   0xFD8,Carry,0
+00017A AE12       00377 	BTFSS temp,7,0
+00017C 90D8       00378 	BCF   0xFD8,Carry,0
+00017E 3212       00379 	RRCF  temp,1,0
+                  00380 			;		debounce(INPUTS_RAW[i], &INPUTS_STATE[i], &DebounceCounters[i]);
+000180 6AEA       00381 	CLRF  FSR0+1,0
+000182 0E26       00382 	MOVLW 38
+000184 2411       00383 	ADDWF i,W,0
+000186 6EE9       00384 	MOVWF FSR0,0
+000188 CFEF F014  00385 	MOVFF INDF0,test
+00018C 0E2A       00386 	MOVLW 42
+00018E 2411       00387 	ADDWF i,W,0
+000190 6E15       00388 	MOVWF state,0
+000192 0E32       00389 	MOVLW 50
+000194 2411       00390 	ADDWF i,W,0
+000196 6E16       00391 	MOVWF counter,0
+000198 D852       00392 	RCALL debounce
+                  00393 			;		if(INPUTS_STATE[i]==0){
+00019A 6AEA       00394 	CLRF  FSR0+1,0
+00019C 0E2A       00395 	MOVLW 42
+00019E 2411       00396 	ADDWF i,W,0
+0001A0 6EE9       00397 	MOVWF FSR0,0
+0001A2 50EF       00398 	MOVF  INDF0,W,0
+0001A4 A4D8       00399 	BTFSS 0xFD8,Zero_,0
+0001A6 D00D       00400 	BRA   m019
+                  00401 			;				time=TIMERS[i]; 								// SET OUTPUT FLAG HIGH IF INPUTS ARE DEBOUNCED
+0001A8 6AEA       00402 	CLRF  FSR0+1,0
+0001AA 90D8       00403 	BCF   0xFD8,Carry,0
+0001AC 3411       00404 	RLCF  i,W,0
+0001AE 0F1E       00405 	ADDLW 30
+0001B0 6EE9       00406 	MOVWF FSR0,0
+0001B2 CFEE F013  00407 	MOVFF POSTINC0,time
+                  00408 			;				OUTPUTS[i]=time;
+0001B6 6AEA       00409 	CLRF  FSR0+1,0
+0001B8 0E2E       00410 	MOVLW 46
+0001BA 2411       00411 	ADDWF i,W,0
+0001BC 6EE9       00412 	MOVWF FSR0,0
+0001BE C013 FFEF  00413 	MOVFF time,INDF0
+                  00414 			;			}	
+                  00415 			;		}
+0001C2 2A11       00416 m019	INCF  i,1,0
+0001C4 D7C3       00417 	BRA   m015
+                  00418 			;	}
+                  00419 			;}// end main()
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 8
+
+ADDR   CODE       LINE  SOURCE
+
+                  00420 			;
+                  00421 			;
+                  00422 			;void InitialiseHardware(void) {
+                  00423 InitialiseHardware
+                  00424 			;  	
+                  00425 			;  	OSCCON = 0b0111.0000;
+0001C6 0E70       00426 	MOVLW 112
+0001C8 6ED3       00427 	MOVWF OSCCON,0
+                  00428 			;  	
+                  00429 			;  	TRISA  = 0x07; 						// PORTA (0 = OUTPUT)
+0001CA 0E07       00430 	MOVLW 7
+0001CC 6E92       00431 	MOVWF TRISA,0
+                  00432 			;  	TRISB  = 0x00; 						// PORTB (0 = OUTPUT)
+0001CE 6A93       00433 	CLRF  TRISB,0
+                  00434 			;  	TRISC  = 0x00; 						// PORTC (0 = OUTPUT)
+0001D0 6A94       00435 	CLRF  TRISC,0
+                  00436 			;	PORTA  = 0x00;				// Initialise PORTA
+0001D2 6A80       00437 	CLRF  PORTA,0
+                  00438 			;	PORTB  = 0x00;				// Initialise PORTB
+0001D4 6A81       00439 	CLRF  PORTB,0
+                  00440 			;	PORTC  = 0X00;
+0001D6 6A82       00441 	CLRF  PORTC,0
+                  00442 			;	ADCON1 = 0x0F;						// All portA inpouts are digital
+0001D8 0E0F       00443 	MOVLW 15
+0001DA 6EC1       00444 	MOVWF ADCON1,0
+                  00445 			;	INTCON = 0b11000000;
+0001DC 0EC0       00446 	MOVLW 192
+0001DE 6EF2       00447 	MOVWF INTCON,0
+                  00448 			;	T2CON  = 0b00001101;				// TMR2 on, prescale = 1:4, and postscale = 1:2  (4us ticks with 8MHz oscillator)
+0001E0 0E0D       00449 	MOVLW 13
+0001E2 6ECA       00450 	MOVWF T2CON,0
+                  00451 			;	PIE1   = 0x02;
+0001E4 0E02       00452 	MOVLW 2
+0001E6 6E9D       00453 	MOVWF PIE1,0
+                  00454 			;	IPR1  = 0x00;
+0001E8 6A9F       00455 	CLRF  IPR1,0
+                  00456 			;	PR2	   = 250;						// 250 * 4us = 1ms interrupts 
+0001EA 0EFA       00457 	MOVLW 250
+0001EC 6ECB       00458 	MOVWF PR2,0
+                  00459 			;
+                  00460 			;}
+0001EE 0012       00461 	RETURN
+                  00462 			;
+                  00463 			;void InitialiseGlobals(void) {
+                  00464 InitialiseGlobals
+                  00465 			;	int i = 0;
+0001F0 6A14       00466 	CLRF  i_2,0
+                  00467 			;	
+                  00468 			;	T1ms = 0;							// Reset Timers
+0001F2 6A18       00469 	CLRF  T1ms,0
+                  00470 			;	T10ms = 0;
+0001F4 6A19       00471 	CLRF  T10ms,0
+                  00472 			;	T100ms = 0;
+0001F6 6A1A       00473 	CLRF  T100ms,0
+                  00474 			;//	SecondsFlag=0;
+                  00475 			;	for(i=0;i<4;i++){
+0001F8 6A14       00476 	CLRF  i_2,0
+0001FA BE14       00477 m020	BTFSC i_2,7,0
+0001FC D003       00478 	BRA   m021
+0001FE 0E04       00479 	MOVLW 4
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 9
+
+ADDR   CODE       LINE  SOURCE
+
+000200 6014       00480 	CPFSLT i_2,0
+000202 D012       00481 	BRA   m022
+                  00482 			;		INPUTS_RAW[i]=0;
+000204 6AEA       00483 m021	CLRF  FSR0+1,0
+000206 0E26       00484 	MOVLW 38
+000208 2414       00485 	ADDWF i_2,W,0
+00020A 6EE9       00486 	MOVWF FSR0,0
+00020C 6AEF       00487 	CLRF  INDF0,0
+                  00488 			;		INPUTS_STATE[i]=1;
+00020E 6AEA       00489 	CLRF  FSR0+1,0
+000210 0E2A       00490 	MOVLW 42
+000212 2414       00491 	ADDWF i_2,W,0
+000214 6EE9       00492 	MOVWF FSR0,0
+000216 0E01       00493 	MOVLW 1
+000218 6EEF       00494 	MOVWF INDF0,0
+                  00495 			;		OUTPUTS[i]=0;
+00021A 6AEA       00496 	CLRF  FSR0+1,0
+00021C 0E2E       00497 	MOVLW 46
+00021E 2414       00498 	ADDWF i_2,W,0
+000220 6EE9       00499 	MOVWF FSR0,0
+000222 6AEF       00500 	CLRF  INDF0,0
+                  00501 			;	}
+000224 2A14       00502 	INCF  i_2,1,0
+000226 D7E9       00503 	BRA   m020
+                  00504 			;	LoopCounter=0;
+000228 6A36       00505 m022	CLRF  LoopCounter,0
+                  00506 			;	TIMERS[0] = LIGHTS_RUNTIME;
+00022A 0E32       00507 	MOVLW 50
+00022C 6E1E       00508 	MOVWF TIMERS,0
+00022E 6A1F       00509 	CLRF  TIMERS+1,0
+                  00510 			;	TIMERS[1] = DOOR1_RUNTIME;
+000230 0E05       00511 	MOVLW 5
+000232 6E20       00512 	MOVWF TIMERS+2,0
+000234 6A21       00513 	CLRF  TIMERS+3,0
+                  00514 			;	TIMERS[2] = DOOR2_RUNTIME;
+000236 0E05       00515 	MOVLW 5
+000238 6E22       00516 	MOVWF TIMERS+4,0
+00023A 6A23       00517 	CLRF  TIMERS+5,0
+                  00518 			;	
+                  00519 			;}
+00023C 0012       00520 	RETURN
+                  00521 			;
+                  00522 			;
+                  00523 			;void debounce(char test, char *state, char *counter) {
+                  00524 debounce
+                  00525 			;	if ((*state) != test) {
+00023E C015 FFE9  00526 	MOVFF state,FSR0
+000242 6AEA       00527 	CLRF  FSR0+1,0
+000244 50EF       00528 	MOVF  INDF0,W,0
+000246 1814       00529 	XORWF test,W,0
+000248 B4D8       00530 	BTFSC 0xFD8,Zero_,0
+00024A D014       00531 	BRA   m023
+                  00532 			;   	(*counter)++;
+00024C C016 FFE9  00533 	MOVFF counter,FSR0
+000250 6AEA       00534 	CLRF  FSR0+1,0
+000252 2AEF       00535 	INCF  INDF0,1,0
+                  00536 			;		if ((*counter) >= MAX_DEBOUNCE_COUNT) {
+000254 C016 FFE9  00537 	MOVFF counter,FSR0
+000258 6AEA       00538 	CLRF  FSR0+1,0
+00025A 0E09       00539 	MOVLW 9
+CC8E Version 1.3D,   File: GLIGHTS.C            2. Jul 2011  23:29   Page 10
+
+ADDR   CODE       LINE  SOURCE
+
+00025C 64EF       00540 	CPFSGT INDF0,0
+00025E D00E       00541 	BRA   m024
+                  00542 			;			(*counter) = 0;
+000260 C016 FFE9  00543 	MOVFF counter,FSR0
+000264 6AEA       00544 	CLRF  FSR0+1,0
+000266 6AEF       00545 	CLRF  INDF0,0
+                  00546 			;			(*state) = test;
+000268 C015 FFE9  00547 	MOVFF state,FSR0
+00026C 6AEA       00548 	CLRF  FSR0+1,0
+00026E C014 FFEF  00549 	MOVFF test,INDF0
+                  00550 			;		}
+                  00551 			;	} else {
+000272 D004       00552 	BRA   m024
+                  00553 			;		(*counter) = 0;
+000274 C016 FFE9  00554 m023	MOVFF counter,FSR0
+000278 6AEA       00555 	CLRF  FSR0+1,0
+00027A 6AEF       00556 	CLRF  INDF0,0
+                  00557 			;	}
+                  00558 			;}
+00027C 0012       00559 m024	RETURN
+                  00560 
+                  00561 	END
+                  00562 
+                  00563 
+                  00564 ; *** KEY INFO ***
+                  00565 
+                  00566 ; 0x0001C6   21 word(s)  0 % : InitialiseHardware
+                  00567 ; 0x0001F0   39 word(s)  0 % : InitialiseGlobals
+                  00568 ; 0x00023E   32 word(s)  0 % : debounce
+                  00569 ; 0x000018  146 word(s)  3 % : lowPriorityIntServer
+                  00570 ; 0x00013C   69 word(s)  1 % : main
+                  00571 
+                  00572 ; RAM usage: 55 bytes (23 local), 457 bytes free
+                  00573 ; Maximum call level: 1 (+1 for interrupt)
+                  00574 ; Total of 309 code words (7 %)

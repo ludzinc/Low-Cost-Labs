@@ -34,7 +34,7 @@ String getContentType(String filename) {
 //******************************************************************************************************************************
 bool handleFileRead(String path) {
   DEBUG_PRINTLN("handleFileRead: " + path);
-  if (path.endsWith("/")) path += "main.html";
+  if (path.endsWith("/")) path += "home.html";
   String contentType = getContentType(path);
 
   if (path.startsWith("/output_")) {

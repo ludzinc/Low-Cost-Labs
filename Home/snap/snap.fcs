@@ -1,0 +1,43 @@
+
+CC5X Version 3.2, Copyright (c) B Knudsen Data.
+* FUNCTION CALL STRUCTURE
+
+F: IntHandler             :#0 
+    RxByte                : #1 
+
+F: main                   :#0 
+    InitialiseGlobals     : #1 
+    InitialiseHardware    : #1 
+    ConfigSerial          : #1 
+    SendString            : #1 
+
+F: InitialiseHardware     :#1 
+
+F: InitialiseGlobals      :#1 
+
+F: debounce               :#0 
+
+F: ConfigSerial           :#1 
+
+F: TxByte                 :#1 
+
+F: RxByte                 :#1 
+
+F: SendString             :#1 
+    TxByte                : #1 
+
+F: ReadEEPROM             :#0 
+
+F: WriteEEPROM            :#0 
+
+
+ L1  IntHandler
+ L2    RxByte
+
+ L0  main
+ L1    InitialiseGlobals
+ L1    InitialiseHardware
+ L1    ConfigSerial
+ L1    SendString
+ L2      TxByte
+
