@@ -1,0 +1,3 @@
+Interrrupt driven timer
+
+Osc values calibrated to correct for small 1Hz error.

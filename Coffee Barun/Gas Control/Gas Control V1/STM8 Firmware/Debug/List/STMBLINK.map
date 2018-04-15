@@ -1,0 +1,242 @@
+###############################################################################
+#
+# IAR ELF Linker V2.20.1.176 for STM8                     07/Feb/2017  22:57:03
+# Copyright 2010-2015 IAR Systems AB.
+#
+#    Output file  =  
+#        C:\Data\Low Cost Labs\Barun Gas Control\STM8
+#        Firmware\Debug\Exe\STMBLINK.out
+#    Map file     =  
+#        C:\Data\Low Cost Labs\Barun Gas Control\STM8
+#        Firmware\Debug\List\STMBLINK.map
+#    Command line =  
+#        "C:\Data\Low Cost Labs\Barun Gas Control\STM8
+#        Firmware\Debug\Obj\main.o" --redirect _Printf=_PrintfFullNoMb
+#        --redirect _Scanf=_ScanfFullNoMb -o "C:\Data\Low Cost Labs\Barun Gas
+#        Control\STM8 Firmware\Debug\Exe\STMBLINK.out" --map "C:\Data\Low Cost
+#        Labs\Barun Gas Control\STM8 Firmware\Debug\List\STMBLINK.map" --config
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        7.3\stm8\config\lnkstm8s003f3.icf" --config_def _CSTACK_SIZE=0x100
+#        --config_def _HEAP_SIZE=0x100 --entry __iar_program_start --debug_lib
+#
+###############################################################################
+
+*******************************************************************************
+*** RUNTIME MODEL ATTRIBUTES
+***
+
+__SystemLibrary            = DLib
+__code_model               = small
+__core                     = stm8
+__data_model               = medium
+__dlib_file_descriptor     = 0
+__dlib_full_locale_support = 0
+__rt_version               = 4
+
+
+*******************************************************************************
+*** PLACEMENT SUMMARY
+***
+
+"A1":  place at start of [0x000000-0x0000ff] { rw section .vregs };
+"A2":  place at end of [0x000000-0x0003ff] { block CSTACK };
+"A3":  place at start of [0x008000-0x009fff] { block INTVEC };
+"P3":  place in [from 0x008000 to 0x009fff] {
+          ro section __DLIB_PERTHREAD_init, ro section .far.data_init,
+          ro section .far_func.textrw_init, ro section .huge.data_init,
+          ro section .huge_func.textrw_init, ro section .iar.init_table,
+          ro section .init_array, ro section .near.data_init,
+          ro section .near.rodata, ro section .near_func.text,
+          ro section .near_func.textrw_init, ro section .tiny.data_init,
+          ro section .tiny.rodata_init };
+
+  Section          Kind      Address   Size  Object
+  -------          ----      -------   ----  ------
+"A1":                                   0xc
+  .vregs           uninit   0x000000    0xc  vregs.o [4]
+                          - 0x00000c    0xc
+
+"A2":                                 0x100
+  CSTACK                    0x000300  0x100  <Block>
+    CSTACK         uninit   0x000300  0x100  <Block tail>
+                          - 0x000400  0x100
+
+Absolute sections, part 1 of 7:         0x1
+  .near.noinit     uninit   0x005000    0x1  main.o [1]
+                          - 0x005001    0x1
+
+Absolute sections, part 2 of 7:         0x4
+  .near.noinit     uninit   0x005002    0x1  main.o [1]
+  .near.noinit     uninit   0x005003    0x1  main.o [1]
+  .near.noinit     uninit   0x005004    0x1  main.o [1]
+  .near.noinit     uninit   0x005005    0x1  main.o [1]
+                          - 0x005006    0x4
+
+Absolute sections, part 3 of 7:         0x1
+  .near.noinit     uninit   0x005007    0x1  main.o [1]
+                          - 0x005008    0x1
+
+Absolute sections, part 4 of 7:         0x1
+  .near.noinit     uninit   0x00500a    0x1  main.o [1]
+                          - 0x00500b    0x1
+
+Absolute sections, part 5 of 7:         0x4
+  .near.noinit     uninit   0x00500c    0x1  main.o [1]
+  .near.noinit     uninit   0x00500d    0x1  main.o [1]
+  .near.noinit     uninit   0x00500e    0x1  main.o [1]
+  .near.noinit     uninit   0x00500f    0x1  main.o [1]
+                          - 0x005010    0x4
+
+Absolute sections, part 6 of 7:         0x4
+  .near.noinit     uninit   0x005011    0x1  main.o [1]
+  .near.noinit     uninit   0x005012    0x1  main.o [1]
+  .near.noinit     uninit   0x005013    0x1  main.o [1]
+  .near.noinit     uninit   0x005014    0x1  main.o [1]
+                          - 0x005015    0x4
+
+Absolute sections, part 7 of 7:         0x1
+  .near.noinit     uninit   0x005019    0x1  main.o [1]
+                          - 0x00501a    0x1
+
+"A3":                                  0x80
+  INTVEC                    0x008000   0x80  <Block>
+    .intvec        const    0x008000   0x80  interrupt.o [4]
+                          - 0x008080   0x80
+
+"P3":                                  0xe8
+  .near_func.text  ro code  0x008080   0x41  main.o [1]
+  .near_func.text  ro code  0x0080c1   0x34  main.o [1]
+  .near_func.text  ro code  0x0080f5   0x18  vreg_util.o [4]
+  .near_func.text  ro code  0x00810d   0x17  init.o [4]
+  .near_func.text  ro code  0x008124   0x14  __dbg_xxexit.o [3]
+  .near_func.text  ro code  0x008138   0x13  cstartup.o [4]
+  .near_func.text  ro code  0x00814b    0xb  main.o [1]
+  .near_func.text  ro code  0x008156    0x5  cexit.o [4]
+  .near_func.text  ro code  0x00815b    0x3  interrupt.o [4]
+  .near_func.text  ro code  0x00815e    0x3  low_level_init.o [4]
+  .near_func.text  ro code  0x008161    0x3  exit.o [4]
+  .near_func.text  ro code  0x008164    0x3  unhandled_exception.o [4]
+  .near_func.text  ro code  0x008167    0x1  __dbg_break.o [3]
+                          - 0x008168   0xe8
+
+
+
+*******************************************************************************
+*** MODULE SUMMARY
+***
+
+    Module                 ro code  ro data  rw data  rw data
+                                                       (abs)
+    ------                 -------  -------  -------  -------
+C:\Data\Low Cost Labs\Barun Gas Control\STM8 Firmware\Debug\Obj: [1]
+    main.o                     128                         16
+    ---------------------------------------------------------
+    Total:                     128                         16
+
+command line: [2]
+    ---------------------------------------------------------
+    Total:
+
+dbgstm8smd.a: [3]
+    __dbg_break.o                1
+    __dbg_xxexit.o              20
+    ---------------------------------------------------------
+    Total:                      21
+
+dlstm8smn.a: [4]
+    cexit.o                      5
+    cstartup.o                  19
+    exit.o                       3
+    init.o                      23
+    interrupt.o                  3      128
+    low_level_init.o             3
+    unhandled_exception.o        3
+    vreg_util.o                 24
+    vregs.o                                       12
+    ---------------------------------------------------------
+    Total:                      83      128       12
+
+    Linker created                               256
+-------------------------------------------------------------
+    Grand Total:               232      128      268       16
+
+
+*******************************************************************************
+*** ENTRY LIST
+***
+
+Entry                    Address  Size  Type      Object
+-----                    -------  ----  ----      ------
+?b0                     0x000000        Data  Gb  vregs.o [4]
+?b1                     0x000001        Data  Gb  vregs.o [4]
+?b10                    0x00000a        Data  Gb  vregs.o [4]
+?b11                    0x00000b        Data  Gb  vregs.o [4]
+?b2                     0x000002        Data  Gb  vregs.o [4]
+?b3                     0x000003        Data  Gb  vregs.o [4]
+?b4                     0x000004        Data  Gb  vregs.o [4]
+?b5                     0x000005        Data  Gb  vregs.o [4]
+?b6                     0x000006        Data  Gb  vregs.o [4]
+?b7                     0x000007        Data  Gb  vregs.o [4]
+?b8                     0x000008        Data  Gb  vregs.o [4]
+?b9                     0x000009        Data  Gb  vregs.o [4]
+?e0                     0x000001        Data  Gb  vregs.o [4]
+?e1                     0x000005        Data  Gb  vregs.o [4]
+?e2                     0x000009        Data  Gb  vregs.o [4]
+?l0                     0x000000        Data  Gb  vregs.o [4]
+?l1                     0x000004        Data  Gb  vregs.o [4]
+?l2                     0x000008        Data  Gb  vregs.o [4]
+?push_w4                0x0080f5        Code  Gb  vreg_util.o [4]
+?w0                     0x000000        Data  Gb  vregs.o [4]
+?w1                     0x000002        Data  Gb  vregs.o [4]
+?w2                     0x000004        Data  Gb  vregs.o [4]
+?w3                     0x000006        Data  Gb  vregs.o [4]
+?w4                     0x000008        Data  Gb  vregs.o [4]
+?w5                     0x00000a        Data  Gb  vregs.o [4]
+CSTACK$$Base            0x000300         --   Gb  - Linker created -
+CSTACK$$Limit           0x000400         --   Gb  - Linker created -
+INTVEC$$Base            0x008000         --   Gb  - Linker created -
+INTVEC$$Limit           0x008080         --   Gb  - Linker created -
+Region$$Table$$Base   0x00000000         --   Gb  - Linker created -
+Region$$Table$$Limit  0x00000000         --   Gb  - Linker created -
+_A_PA_CR1               0x005003   0x1  Data  Gb  main.o [1]
+_A_PA_CR2               0x005004   0x1  Data  Gb  main.o [1]
+_A_PA_DDR               0x005002   0x1  Data  Gb  main.o [1]
+_A_PA_ODR               0x005000   0x1  Data  Gb  main.o [1]
+_A_PB_DDR               0x005007   0x1  Data  Gb  main.o [1]
+_A_PB_ODR               0x005005   0x1  Data  Gb  main.o [1]
+_A_PC_CR1               0x00500d   0x1  Data  Gb  main.o [1]
+_A_PC_CR2               0x00500e   0x1  Data  Gb  main.o [1]
+_A_PC_DDR               0x00500c   0x1  Data  Gb  main.o [1]
+_A_PC_ODR               0x00500a   0x1  Data  Gb  main.o [1]
+_A_PD_CR1               0x005012   0x1  Data  Gb  main.o [1]
+_A_PD_CR2               0x005013   0x1  Data  Gb  main.o [1]
+_A_PD_DDR               0x005011   0x1  Data  Gb  main.o [1]
+_A_PD_ODR               0x00500f   0x1  Data  Gb  main.o [1]
+_A_PE_ODR               0x005014   0x1  Data  Gb  main.o [1]
+_A_PF_ODR               0x005019   0x1  Data  Gb  main.o [1]
+__DebugBreak            0x008167   0x1  Code  Gb  __dbg_break.o [3]
+__exit                  0x008124  0x14  Code  Gb  __dbg_xxexit.o [3]
+__iar_data_init2        0x00810d  0x17  Code  Gb  init.o [4]
+__iar_program_start     0x008138        Code  Gb  cstartup.o [4]
+__iar_unhandled_exception
+                        0x008164        Code  Gb  unhandled_exception.o [4]
+__intvec                0x008000        Data  Gb  interrupt.o [4]
+__low_level_init        0x00815e   0x3  Code  Gb  low_level_init.o [4]
+_exit                   0x008156        Code  Gb  cexit.o [4]
+delay                   0x00814b   0xb  Code  Gb  main.o [1]
+exit                    0x008161   0x3  Code  Gb  exit.o [4]
+main                    0x0080c1  0x34  Code  Gb  main.o [1]
+setupHardware           0x008080  0x41  Code  Gb  main.o [1]
+
+
+[1] = C:\Data\Low Cost Labs\Barun Gas Control\STM8 Firmware\Debug\Obj
+[2] = command line
+[3] = dbgstm8smd.a
+[4] = dlstm8smn.a
+
+  232 bytes of readonly  code memory
+  128 bytes of readonly  data memory
+  268 bytes of readwrite data memory (+ 16 absolute)
+
+Errors: none
+Warnings: none
