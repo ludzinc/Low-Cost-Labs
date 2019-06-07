@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+
+  <script>
+    //**************************************************************************
+    // Show button is pressed by keepinng active class asserted for 500ms
+    //**************************************************************************
+    $(document).ready(function() {
+      // console.log('Document ready.')
+      $('.btn').click(function() {
+        $(this).addClass('active');
+        setTimeout(function() {
+          console.log("removing class active");
+          $('.active').removeClass('active');
+        }, 500);
+      });
+    });
+    //**************************************************************************
+    // Send AJAX request to activate Outputs on teh ESP8266
+    //**************************************************************************
+    function requestIO(selectButton, thisType) {
+      var thisInput = "";
+
+      thisInput = thisType + selectButton;
+      console.log("thisInput is", thisInput);
+      request = new XMLHttpRequest();
+      requestData = "output_" + selectButton;
+      console.log("Requesting " + requestData);
+      request.open("GET", requestData, true);
+      request.send(null);
+      console.log("request sent");
+    }
+  </script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    // use below when hosted on ESP8266
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // use below for connecting to ESP server via IP address (when testing code on PC)
+    // var wsUri = 'ws://192.168.1.118:81/';
+    // use below for connecting to Nodejs server (when testing code on PC)
+    // var wsUri = 'ws://localhost:80/';
+    var output;
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+
+    function init() {
+      console.log("Initiating Home page");
+      openWebsocket();
+      formatRequest("configButtons");
+      formatRequest("configTemperature");
+    }
+    //**************************************************************************
+    // Open Websockets
+    // As Websocekts are asynchronous, when first opening messages may be sent
+    // to a que to be processed once the readyState is = 1 (opened)
+    // this will send all queued messages once the socket is opened.
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        // check if websocke is open here
+        console.log("request sent to websocket");
+      }
+      // how do i close teh websocet??
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+
+    function onMessage(evt) {
+      // change to case / swtich statement later
+      var messageRecieved = evt.data;
+      var jsonMessage = JSON.parse(messageRecieved);
+      console.log("Message Recieved is: " + messageRecieved);
+      if (jsonMessage.echo == "configButtons") {
+        processButtons(jsonMessage);
+        document.getElementById("pageStatus").style.visibility = "hidden";
+      } else if (jsonMessage.echo == "configTemperature") {
+        var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept);
+        console.log("Temperature after calibration is: ", displayTemperature);
+        console.log("jsonMessage.mode = ", jsonMessage.mode);
+        if (jsonMessage.mode == "F") {
+          displayTemperature = (displayTemperature * (9 / 5) + 32);
+          console.log("Temperature after conversion is: ", displayTemperature);
+        }
+        document.getElementById("showTemp").innerHTML = displayTemperature + "&#xb0;" + jsonMessage.mode;
+        document.getElementById("showTemp").style.display = "block";
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+
+    function processButtons(jsonData) {
+      var i = 0;
+      // document.getElementById("inputLocalName").value = jsonData.LocalName;
+      console.log("Button Config Data recived")
+      for (i = 0; i < 4; i++) {
+        var idname = "b" + (i + 1);
+        var idButton = "p" + (i + 1);
+        console.log("button index is :", idname);
+        console.log("button name is :", jsonData.buttonNames[i]);
+        console.log("button show is:", jsonData.show[i]);
+        console.log("button mode is:", jsonData.buttonMode[i]);
+        document.getElementById(idname).innerHTML = (jsonData.buttonNames[i]);
+        if ((jsonData.show[i]) == 1) {
+          // document.getElementById(idname).remove();
+          document.getElementById(idButton).style.display = "block";
+          console.log("showing button ", idname);
+        } else {
+          document.getElementById(idButton).style.display = "none";
+          console.log("hiding button ", idname);
+        }
+        if ((jsonData.buttonMode[i]) == 1) {
+          console.log("option to change look of light button here.  Do later.");
+        }
+      }
+    }
+
+    function formatRequest(requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": "request",
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      // websocket.send(jsonSaveData);
+      queryWebSocket(jsonRequest);
+    }
+    window.addEventListener("load", init, false);
+  </script>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a hidden id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="options.html" style="text-align: right">OPTIONS</a></li>
+          <li><a href="brightness.html" style="text-align: right">BRIGHTNESS</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <p id="pageStatus">No Current Status</p>
+    <!-- Buttons ================================================== -->
+    <div class="container">
+      <br />
+      <p hidden id="p1" class="bs-component">
+        <button id="b1" type="button" class="btn btn-default btn-lg btn-block" onclick="requestIO(1,'b');">BUTTON 1</button>
+      </p>
+      <p hidden id="p2" class="bs-component">
+        <button id="b2" type="button" class="btn btn-default btn-lg btn-block" onclick="requestIO(2,'b');">BUTTON 2</button>
+      </p>
+      <p hidden id="p3" class="bs-component">
+        <button id="b3" type="button" class="btn btn-default btn-lg btn-block" onclick="requestIO(3,'b');">BUTTON 3</button>
+      </p>
+      <p hidden id="p4" class="bs-component">
+        <button id="b4" type="button" class="btn btn-default btn-lg btn-block" onclick="requestIO(4,'b');">BUTTON 4</button>
+      </p>
+    </div>
+  </div>
+
+</body>
+
+
+</html>

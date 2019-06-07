@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: Brightness</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/bootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+
+  <script>
+    var thisInput = "";
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+  </script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // var wsUri = 'ws://192.168.1.116:81/';
+    // var wsUri = 'ws://localhost:80/';
+    var output;
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+    var jsonMessage = "";
+
+    function init() {
+      console.log("Initiating settings page Functions");
+      document.getElementById("pageStatus").innerHTML = "Requesting Button PWM Data."
+      document.getElementById("pageStatus").style.color = "yellow";
+      openWebsocket();
+      formatRequest("configButtonPWM");
+      formatRequest("configTemperature");
+    }
+    //**************************************************************************
+    // Open Websockets
+    // As Websocekts are asynchronous, when first opening messages may be sent
+    // to a que to be processed once the readyState is = 1 (opened)
+    // this will send all queued messages once the socket is opened.
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        console.log("request sent to websocket");
+      }
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+
+    function onMessage(evt) {
+      // change to case / swtich statement later
+      var messageRecieved = evt.data;
+      var indexSSID, indexRSSI, indexTYPE, indexEND;
+      // var jsonMessage = JSON.parse(messageRecieved);
+      jsonMessage = JSON.parse(messageRecieved);
+      console.log("Message Recieved is: " + messageRecieved);
+
+      if (jsonMessage.echo == "configTemperature") {
+        processTemperature(jsonMessage);
+      } else if (jsonMessage.echo == "configButtonPWM") {
+        processButtonPWM(jsonMessage);
+      } else if (jsonMessage.echo == "saveButtonPWM") {
+        document.getElementById("pageStatus").innerHTML = "Settings Saved."
+        document.getElementById("pageStatus").style.color = "limegreen";
+        document.getElementById("pageStatus").style.visibility = "visible";
+        websocket.close();
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+
+    function formatRequest(requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": "request",
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      queryWebSocket(jsonRequest);
+    }
+
+    function saveSettingsWebSocket() {
+      var saveData = {};
+      var scale = 0;
+      saveData.type = "saveButtonPWM";
+      saveData.buttonPWM = [];
+      for (var i = 0; i < 2; i++) {
+        scale = document.getElementById("bright" + i).value;
+        scale = scale / 100;
+        scale = Math.round(1024 * scale);
+        if (scale > 1023) {
+          scale = 1023;
+        }
+        // saveData.buttonPWM[i] = document.getElementById("bright" + i).value;
+        saveData.buttonPWM[i] = scale;
+      }
+      // saveData.slope = document.getElementById("tempSlope").value;
+      // saveData.intercept = document.getElementById("tempIntercept").value;
+      var jsonSaveData = JSON.stringify(saveData);
+      queryWebSocket(jsonSaveData);
+      // document.getElementById("buttonSubmit").disabled = true;
+      // document.getElementById("buttonSubmit").style.visibility = "hidden";
+      document.getElementById("buttonCancel").innerHTML = "Home";
+    };
+
+    function processTemperature(jsonData) {
+      console.log(jsonData.echo, "request answered.  Processing temperature configuration data now");
+      document.getElementById("pageStatus").style.visibility = "hidden";
+      console.log(jsonMessage.echo, " request answered.  Processing Temperature Calibration now.");
+      document.getElementById("showTemp").innerHTML = jsonMessage.data * jsonMessage.slope + jsonMessage.intercept + "&#xb0;" + jsonMessage.mode;
+    }
+
+    function processButtonPWM(jsonData) {
+      var bPWM = 0;
+      console.log(jsonData.echo, "request answered.  Processing Button Configuration now.");
+      bPWM = Math.round(100 * (jsonData.buttonPWM[0]) / (1024));
+      document.getElementById("bright0").value = bPWM;
+      bPWM = Math.round(100 * (jsonData.buttonPWM[1]) / (1024));
+      document.getElementById("bright1").value = bPWM;
+      console.log("Button 0 PWM value is: ", jsonData.buttonPWM[0], "Button 1 PWM value is:", jsonData.buttonPWM[1]);
+      document.getElementById("buttonSubmit").disabled = false;
+      // console.log("buttone pwm values are : b0 = ", jsonMessage.buttonPWM[0], " and b1 = ", jsonMessage.buttonPWM[1]);
+      console.log("Showing SUBMIT Button");
+    }
+
+    function setBrightness(index, increment) {
+      var brightness = "not set";
+      brightness = parseInt(document.getElementById("bright" + (index)).value) + increment;
+      brightness = Math.round(brightness / 10) * 10;
+      console.log("current brightness is ", brightness);
+      if (brightness > 100) {
+        brightness = 100;
+        console.log("brightness is capped")
+      }
+      if (brightness < 0) {
+        brightness = 0;
+        console.log("brightness is capped")
+      }
+      document.getElementById("bright" + (index)).value = brightness;
+    }
+    window.addEventListener("load", init, false);
+  </script>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="options.html" style="text-align: right">OPTIONS</a></li>
+          <li><a href="brightness.html" style="text-align: right">BRIGHTNESS</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <!-- Forms ================================================== -->
+    <div class="bs-docs-section">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="well bs-component">
+            <form class="form-horizontal">
+              <fieldset>
+                <div class="form-group">
+                  <div class="row">
+                    <div class="col-lg-4">
+                      <br>
+                      <h1 id="Button_Options">BUTTON BRIGHTNESS</h1>
+                      <p id="pageStatus">No Current Status</p>
+                      <label>Light Brightness %</label>
+                      <div class="input-group">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default" onclick="setBrightness(1,-10);">&laquo;</button>
+                        </span>
+                        <input type="number" style="text-align: center; width: 100%" class="form-control input-number" id="bright1" value="50" min="0" max="100">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default" onclick="setBrightness(1,10);">&raquo;</button>
+                        </span>
+                      </div>
+                      <br><br>
+                      <label>Door Brightness %</label>
+                      <div class="input-group">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default" onclick="setBrightness(0,-10);">&laquo;</button>
+                        </span>
+                        <input type="number" style="text-align: center; width: 100%" class="form-control input-number" id="bright0" value="50" min="0" max="100">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default" onclick="setBrightness(0,10);">&raquo;</button>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-lg-10 col-lg-offset-2">
+                    <a href="home.html" id="buttonCancel" class="btn btn-default">Cancel</a>
+                    <button type="button" id="buttonSubmit" style="float: right" class="btn btn-default" disabled onclick="saveSettingsWebSocket();">Submit</button>
+                  </div>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
