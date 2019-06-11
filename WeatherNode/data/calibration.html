@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: Calibration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+
+  <script>
+    var thisInput = "";
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+  </script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    // use below when hosted on ESP8266
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // use below for connecting to ESP server via IP address (when testing code on PC)
+    // var wsUri = 'ws://192.168.1.111:81/';
+    // use below for connecting to Nodejs server (when testing code on PC)
+    // var wsUri = 'ws://localhost:80/';
+    var output;
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+    var jsonMessage = "";
+
+    function init() {
+      console.log("Initiating settings page Functions");
+      document.getElementById("pageStatus").innerHTML = "Requesting Temperature Calibration."
+      document.getElementById("pageStatus").style.color = "yellow";
+      openWebsocket();
+      formatRequest("configTemperature");
+    }
+    //**************************************************************************
+    // Open Websockets
+    // As Websocekts are asynchronous, when first opening messages may be sent
+    // to a que to be processed once the readyState is = 1 (opened)
+    // this will send all queued messages once the socket is opened.
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        console.log("request sent to websocket");
+      }
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+
+    function onMessage(evt) {
+      // change to case / swtich statement later
+      var messageRecieved = evt.data;
+      var indexSSID, indexRSSI, indexTYPE, indexEND;
+      // var jsonMessage = JSON.parse(messageRecieved);
+      jsonMessage = JSON.parse(messageRecieved);
+      console.log("Message Recieved is: " + messageRecieved);
+
+      if (jsonMessage.echo == "configTemperature") {
+        processTemperature();
+      } else if (jsonMessage.echo == "saveTemperature") {
+        document.getElementById("pageStatus").innerHTML = "Settings Saved."
+        document.getElementById("pageStatus").style.color = "limegreen";
+        document.getElementById("pageStatus").style.visibility = "visible";
+        websocket.close();
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+
+    function formatRequest(requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": "request",
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      queryWebSocket(jsonRequest);
+    }
+
+    function saveSettingsWebSocket() {
+      if ((document.getElementById("tempSlope").value == "") || (document.getElementById("tempSlope").value == "")) {
+        console.log("Invalid Calibration Data Values");
+        document.getElementById("pageStatus").innerHTML = "Invalid Calibration Data Values.  Please retry."
+        document.getElementById("pageStatus").style.color = "orange";
+        document.getElementById("pageStatus").style.visibility = "visible";
+      } else {
+        var saveData = {};
+        saveData.type = "saveTemperature";
+        if (document.getElementById("optionTempC").checked == true) {
+          saveData.mode = "C";
+        } else {
+          saveData.mode = "F";
+        }
+        saveData.slope = document.getElementById("tempSlope").value;
+        saveData.intercept = document.getElementById("tempIntercept").value;
+        var jsonSaveData = JSON.stringify(saveData);
+        queryWebSocket(jsonSaveData);
+        document.getElementById("buttonSubmit").disabled = true;
+        document.getElementById("buttonSubmit").style.visibility = "hidden";
+        document.getElementById("buttonCancel").innerHTML = "Home";
+      }
+    }
+
+    function processTemperature() {
+      document.getElementById("pageStatus").style.visibility = "hidden";
+      console.log(jsonMessage.echo, " request answered.  Processing Temperature Calibration now.");
+      var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept);
+      if (jsonMessage.mode == "F") {
+        displayTemperature = (displayTemperature * (9 / 5) + 32);
+      }
+      document.getElementById("showTemp").innerHTML = Math.round(displayTemperature) + "&#xb0;" + jsonMessage.mode;
+      document.getElementById("showTemp").style.display = "block";
+      document.getElementById("tempSlope").value = jsonMessage.slope;
+      document.getElementById("tempIntercept").value = jsonMessage.intercept;
+      if ((jsonMessage.mode) == "C") {
+        document.getElementById("optionTempC").checked = true;
+      } else {
+        document.getElementById("optionTempF").checked = true;
+      }
+      document.getElementById("buttonSubmit").disabled = false;
+    }
+
+    function validateSubmit() {
+      var input1 = document.getElementById("tempSlope");
+      var input2 = document.getElementById("tempIntercept");
+      if (input1.value == "" || input2.value == "") {
+        document.getElementById("buttonSubmit").disabled = true;
+      } else
+        document.getElementById("buttonSubmit").disabled = false;
+    }
+
+    window.addEventListener("load", init, false);
+  </script>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a hidden id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <!-- Forms ================================================== -->
+    <div class="bs-docs-section">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="well bs-component">
+            <form class="form-horizontal">
+              <fieldset>
+                <!-- <legend>Button Options</legend> -->
+                <div class="form-group">
+                  <div class="row">
+                    <div class="col-lg-4">
+                      <h1 id="Button_Options">Calibration</h1>
+                      <p id="pageStatus">No Current Status</p>
+                      <div class="bs-component">
+                        <ul class="nav nav-tabs" style="margin-bottom: 15px;">
+                          <li class="active"><a href="#button1" data-toggle="tab">Temperature</a></li>
+                        </ul>
+                        <div id="myTabContent" class="tab-content">
+                          <div class="tab-pane fade active in" id="button1">
+                            <div class="col-lg-10">
+                              <label for="tempSlope" class="col-lg-2 control-label">Slope:</label>
+                              <input type="number" class="form-control" id="tempSlope" onkeyup="validateSubmit()">
+                              <label for="tempIntercept" class="col-lg-2 control-label">Intercept:</label>
+                              <input type="number" class="form-control" id="tempIntercept" onkeyup="validateSubmit()">
+                              <label class="col-lg-2 control-label">Mode</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="tempOptions" id="optionTempC" value="C">C</label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="tempOptions" id="optionTempF" value="F">F</label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="col-lg-10 col-lg-offset-2">
+                    <a href="home.html" id="buttonCancel" class="btn btn-default">Cancel</a>
+                    <button type="button" id="buttonSubmit" style="float: right" class="btn btn-default" disabled onclick="saveSettingsWebSocket();">Submit</button>
+                  </div>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

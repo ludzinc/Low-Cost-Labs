@@ -1,0 +1,14 @@
+{
+  "name": "jquery.gauge",
+  "repo": "swehacker/jquery-gauge",
+  "description": "A simple gauge to display values",
+  "version": "0.0.1",
+  "keywords": [],
+  "dependencies": {},
+  "development": {},
+  "license": "MIT",
+  "main": "src/jquery.gauge.js",
+  "scripts": [
+    "src/jquery.gauge.js"
+  ]
+}

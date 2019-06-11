@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: Network</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+
+  <script>
+    var thisInput = "";
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+  </script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    // use below when hosted on ESP8266
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // use below for connecting to ESP server via IP address (when testing code on PC)
+    // var wsUri = 'ws://192.168.1.111:81/';
+    // use below for connecting to Nodejs server (when testing code on PC)
+    // var wsUri = 'ws://localhost:80/';
+    var output;
+    var numberLines = 0;
+    var tableLines = [];
+    var SSIDs = [];
+    var RSSIs = [];
+    var TYPEs = [];
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+
+    function init() {
+      console.log("Initiating settings page Functions");
+      document.getElementById("pageStatus").innerHTML = "Requesting SSID List."
+      document.getElementById("pageStatus").style.color = "yellow";
+      openWebsocket();
+      formatRequest("listSSIDs")
+      formatRequest("localName");
+      formatRequest("configTemperature");
+    }
+    //**************************************************************************
+    // Open Websockets
+    // As Websocekts are asynchronous, when first opening messages may be sent
+    // to a que to be processed once the readyState is = 1 (opened)
+    // this will send all queued messages once the socket is opened.
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        // check if websocke is open here
+        console.log("request sent to websocket");
+      }
+      // how do i close teh websocet??
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+
+    function onMessage(evt) {
+      // change to case / swtich statement later
+      var messageRecieved = evt.data;
+      console.log("Message Recieved is: " + messageRecieved);
+      var indexSSID, indexRSSI, indexTYPE, indexEND;
+      var jsonMessage = JSON.parse(messageRecieved);
+
+      console.log("jsonMessage.echo = " + jsonMessage.echo);
+
+      if (jsonMessage.echo == 'listSSIDs') {
+        processSSID(jsonMessage);
+      } else if (jsonMessage.echo == 'localName') {
+        processLocalName(jsonMessage);
+      } else if (jsonMessage.echo == "configTemperature") {
+        var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept);
+        if (jsonMessage.mode == "F") {
+          displayTemperature = (displayTemperature * (9 / 5) + 32);
+
+        }
+        document.getElementById("showTemp").innerHTML = Math.round(displayTemperature) + "&#xb0;" + jsonMessage.mode;
+        document.getElementById("showTemp").style.display = "block";
+      } else if (jsonMessage.echo == "saveNetworkData") {
+        document.getElementById("pageStatus").innerHTML = "Settings Saved."
+        document.getElementById("pageStatus").style.color = "limegreen";
+        document.getElementById("pageStatus").style.visibility = "visible";
+        websocket.close();
+      } else if (jsonMessage.echo == 'noSSIDFound') {
+        document.getElementById("pageStatus").innerHTML = "No SSIDs Found."
+        document.getElementById("pageStatus").style.color = "DarkOrange";
+        document.getElementById("pageStatus").style.visibility = "visible";
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+
+    function processLocalName(jsonData) {
+      document.getElementById("inputLocalName").value = jsonData.LocalName;
+    }
+
+    function formatRequest(requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": "request",
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      // websocket.send(jsonSaveData);
+      queryWebSocket(jsonRequest);
+    }
+
+    function processSSID(SSIDList) {
+      console.log(SSIDList.echo, " request answered.  Processing SSID Table now.");
+      numberLines = SSIDList.SSIDName.length;
+      for (i = 0; i < numberLines; i++) {
+        SSIDs[i] = SSIDList.SSIDName[i];
+        RSSIs[i] = SSIDList.SSIDRSSI[i];
+        TYPEs[i] = SSIDList.SSIDType[i];
+      }
+      document.getElementById("pageStatus").style.visibility = "hidden"
+      addRows("tableSSID");
+    }
+
+    function addRows(tableID) {
+      // Get a reference to the table
+      var table = document.getElementById(tableID);
+      console.log("Building SSID Table");
+      for (i = 0; i < numberLines; i++) {
+        var newRow = table.insertRow(i + 1);
+        newRow.id = 'rowSSID_' + i;
+        // New row inserted and ID is assigned
+        var newCell_0 = newRow.insertCell(0);
+        var newCell_1 = newRow.insertCell(1);
+        var newCell_2 = newRow.insertCell(2);
+        var newCell_3 = newRow.insertCell(3);
+        newCell_0.innerHTML = i + 1;
+        newCell_1.innerHTML = SSIDs[i];
+        newCell_2.innerHTML = RSSIs[i];
+        newCell_3.innerHTML = TYPEs[i];
+      }
+      addRowHandlers(tableID);
+    }
+
+    function addRowHandlers(tableID) {
+      var table = document.getElementById(tableID);
+      var rows = table.getElementsByTagName("tr");
+      for (i = 0; i < rows.length; i++) {
+        var currentRow = table.rows[i];
+        var createClickHandler =
+          function(row) {
+            return function() {
+              var cell = row.getElementsByTagName("td")[1];
+              var id = cell.innerHTML;
+              console.log("Selected SSID is: " + id);
+              document.getElementById("inputSSID").value = id;
+            };
+          };
+        currentRow.onclick = createClickHandler(currentRow);
+      }
+    }
+
+    function validatePassword() {
+      var inputTextSSID = document.getElementById("inputSSID");
+      var inputTextPassword = document.getElementById("inputPassword");
+      if (inputTextSSID.value == "" || inputTextPassword.value.length < 8) {
+        document.getElementById("buttonSubmit").disabled = true;
+      } else
+        document.getElementById("buttonSubmit").disabled = false;
+    }
+
+    function saveSettingsWebSocket() {
+      if ((document.getElementById("inputSSID").value == "") || (document.getElementById("inputPassword").value.length < 8) || (document.getElementById("inputLocalName").value == "")) {
+        console.log("Invalid Network Data Values");
+        document.getElementById("pageStatus").innerHTML = "Invalid Calibration Data Values.  Please retry."
+        document.getElementById("pageStatus").style.color = "orange";
+        document.getElementById("pageStatus").style.visibility = "visible";
+      } else {
+        var jsonSaveData = JSON.stringify({
+          "type": "saveNetworkData",
+          "newSSID": document.getElementById("inputSSID").value,
+          "newPass": document.getElementById("inputPassword").value,
+          "newLocalName": document.getElementById("inputLocalName").value
+        });
+        console.log("Sending Save Data.");
+        console.log(jsonSaveData);
+        // websocket.send(jsonSaveData);
+        queryWebSocket(jsonSaveData);
+        document.getElementById("buttonSubmit").disabled = true;
+        document.getElementById("buttonSubmit").style.visibility = "hidden";
+        document.getElementById("buttonCancel").innerHTML = "Home";
+      }
+    };
+
+    window.addEventListener("load", init, false);
+  </script>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a hidden id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <!-- Tables ================================================== -->
+    <div class="bs-docs-section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="page-header">
+            <h1 id="tables">Network Settings</h1>
+            <p id="pageStatus">No Current Status</p>
+          </div>
+          <div class="bs-component">
+            <table id="tableSSID" class="table table-striped table-hover ">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>SSID</th>
+                  <th>RSSI</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Forms
+        ================================================== -->
+      <div class="bs-docs-section">
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="well bs-component">
+              <form class="form-horizontal">
+                <fieldset>
+                  <div class="form-group">
+                    <label for="inputSSID" class="col-lg-2 control-label">SSID</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="inputSSID" placeholder="SSID" onkeyup="validatePassword()">
+                    </div>
+
+                    <label for="inputPassword" class="col-lg-2 control-label">Password</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="inputPassword" placeholder="Password" onkeyup="validatePassword()">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputLocalName" class="col-lg-2 control-label">Local Name</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="inputLocalName" placeholder="LocalName">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-lg-10 col-lg-offset-2">
+                      <a href="home.html" id="buttonCancel" class="btn btn-default">Cancel</a>
+                      <button type="button" id="buttonSubmit" style="float: right" class="btn btn-default" disabled onclick="saveSettingsWebSocket();">Submit</button>
+                    </div>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> -->
+  <!-- <script src="bootstrap/bootstrap.min.js"></script> -->
+</body>
+
+</html>

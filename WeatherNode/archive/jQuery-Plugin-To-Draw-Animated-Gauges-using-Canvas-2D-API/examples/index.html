@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+	body {
+		background: #333;
+	}
+	/*Centering the gauge*/
+	canvas {
+		display: block;
+		float: left;
+		margin: 10px auto;
+	}
+	</style>
+    <link href="http://www.jqueryscript.net/css/jquerysctipttop.css" rel="stylesheet" type="text/css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="../src/jquery.gauge.js"></script>
+<title>jQuery Gauge Plugin Demos</title>
+</head>
+<body>
+<div id="jquery-script-menu">
+<div class="jquery-script-center">
+<ul>
+<li><a href="http://www.jqueryscript.net/other/jQuery-Plugin-To-Draw-Animated-Gauges-using-Canvas-2D-API.html">Download This Plugin</a></li>
+<li><a href="http://www.jqueryscript.net/">Back To jQueryScript.Net</a></li>
+</ul>
+<div class="jquery-script-ads"><script type="text/javascript"><!--
+google_ad_client = "ca-pub-2783044520727903";
+/* jQuery_demo */
+google_ad_slot = "2780937993";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></div>
+<div class="jquery-script-clear"></div>
+</div>
+</div>
+<h1 style="margin:150px auto 30px auto; color:#fff;">jQuery Gauge Plugin Demos</h1>
+<canvas id="gauge1" width="200" height="200"></canvas>
+<canvas id="gauge2" width="200" height="200"></canvas>
+<canvas id="gauge3" width="300" height="300"></canvas>
+<canvas id="gauge4" width="200" height="200"></canvas>
+<canvas id="gauge5" width="200" height="200"></canvas>
+<canvas id="gauge6" width="200" height="200"></canvas>
+<script>
+$(document).ready(function (){
+	$("#gauge1").gauge(30,{color: "#F44336"});
+	$("#gauge2").gauge(70, {color: "#8BC34A", unit: " Volt", font: "40px verdana"});
+	$("#gauge3").gauge(50);
+	$("#gauge4").gauge(75, { unit: " A",type: "halfcircle"});
+	$("#gauge5").gauge(99, { unit: " A",type: "halfcircle"});
+	$("#gauge6").gauge(100, {color: "#FFF", colorAlpha: 0.7,type: "halfcircle"});
+});
+</script>
+</body>
+</html>

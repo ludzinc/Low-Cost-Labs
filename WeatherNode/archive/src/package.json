@@ -1,0 +1,38 @@
+{
+  "name": "jquery.gauge.js",
+  "version": "0.0.1",
+  "description": "Simple gauge for jquery",
+  "main": "src/jquery.gauge.js",
+  "directories": {
+    "test": "test",
+    "examples": "examples"
+  },
+  "dependencies": {
+    "grunt-cli": "^0.1.13"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-compare-size": "^0.4.0",
+    "grunt-contrib-connect": "^0.9.0",
+    "grunt-contrib-jshint": "^0.11.0",
+    "grunt-contrib-nodeunit": "^0.4.1",
+    "grunt-contrib-qunit": "^0.5.2",
+    "grunt-contrib-uglify": "^0.7.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-saucelabs": "^8.5.0",
+    "gzip-js": "^0.3.2"
+  },
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/swehacker/jquery.gauge.git"
+  },
+  "author": "Patrik Falk",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/swehacker/jquery.gauge/issues"
+  },
+  "homepage": "https://github.com/swehacker/jquery.gauge"
+}

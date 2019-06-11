@@ -1,0 +1,11 @@
+{
+  "Version"	:"0",
+  "SSID"	:"LCLdefault",
+  "Password"	:"LCLdefault",
+  "hostName"	:"wnode",
+  "temperatureChoice": "C",
+  "APName"	:"WNODE_123456",
+  "APPass"	:"welcome1!",
+  "tempSlope"	:1,
+  "tempIntercept":-5
+}

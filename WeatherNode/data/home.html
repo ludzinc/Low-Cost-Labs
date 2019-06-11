@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: LEVEL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+  <!-- Load gauge scripts -->
+  <script src="gauge/jquery.knob.js"></script>
+
+  <script>
+    //**************************************************************************
+    // setup Gauge
+    //**************************************************************************
+    // Limits for humidity gauge colours
+    const redLowHumidity = 20;
+    const yellowLowHumidity = 30;
+    const greenHighHumidity = 70;
+    const yellowHighHumidity = 80;
+    // Limts for temperature gauge colours
+    const blueLow = 15;
+    const greenLow = 27;
+    const yellowLow = 35;
+
+    var gaugeValue = 0;
+    var thisInput = "";
+
+    $(function() {
+      $(".dial1").knob({
+        'min': 0,
+        'max': 100,
+        'readOnly': true,
+        'angleArc': 270,
+        'angleOffset': 225,
+        'inputColor': 'inherit',
+        'fgColor': 'blue',
+        'bgColor': '#c8c8c8',
+        'dynamicDraw': true
+      });
+    });
+    $(function() {
+      $(".dial2").knob({
+        'min': 0,
+        'max': 100,
+        'readOnly': true,
+        'angleArc': 270,
+        'angleOffset': 225,
+        'inputColor': 'inherit',
+        'fgColor': 'blue',
+        'bgColor': '#c8c8c8',
+        'dynamicDraw': true
+      });
+    });
+
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+
+    function setGauge(gauge, value, colour, maxRange) {
+      $(gauge).val(value).trigger('change');
+      $(gauge).trigger('configure', {
+        'fgColor': colour,
+        'max': maxRange
+      });
+    }
+  </script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    // use below when hosted on ESP8266
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // use below for connecting to ESP server via IP address (when testing code on PC)
+    // var wsUri = 'ws://192.168.1.111:81/';
+    // use below for connecting to Nodejs server (when testing code on PC)
+    // var wsUri = 'ws://localhost:80/';
+    var output;
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+
+    function init() {
+      console.log("Initiating Home page");
+      openWebsocket();
+      formatRequest("getEnvironmentals");
+      // setInterval(formatRequest, 30000, "getEnvironmentals");
+    }
+    //**************************************************************************
+    // Open Websockets
+    // As Websocekts are asynchronous, when first opening messages may be sent
+    // to a que to be processed once the readyState is = 1 (opened)
+    // this will send all queued messages once the socket is opened.
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        // check if websocke is open here
+        console.log("request sent to websocket");
+      }
+      // how do i close teh websocet??
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+
+    function onMessage(evt) {
+      // change to case / swtich statement later
+      var messageRecieved = evt.data;
+      var jsonMessage = JSON.parse(messageRecieved);
+      var gaugeTempColour = "red";
+      var gaugeHumidityColour = "red";
+      console.log("Message Recieved is: " + messageRecieved);
+      if (jsonMessage.echo == "getEnvironmentals") {
+        console.log("getting environmentals");
+        displayEnvironmentals(jsonMessage);
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+
+    function displayEnvironmentals(jsonMessage) {
+      var maxTempRange = 50;
+      var maxHumidityRange = 100;
+      var gaugeTemperature = ((jsonMessage.temperature * jsonMessage.slope) + jsonMessage.intercept);
+      gaugeColour = "blue";
+      if (gaugeTemperature < blueLow) {
+        gaugeColour = "blue";
+      } else if (gaugeTemperature < greenLow) {
+        gaugeColour = "lime";
+      } else if (gaugeTemperature < yellowLow) {
+        gaugeColour = "yellow";
+      } else {
+        gaugeColour = "red";
+      }
+      console.log("Temperature Mode is: ", jsonMessage.mode);
+      if (jsonMessage.mode == 'C') {
+        document.getElementById("tempLabel").innerHTML = "Temperature" + "&#xb0;" + jsonMessage.mode;
+        maxTempRange = 50;
+      } else {
+        gaugeTemperature = (gaugeTemperature * (9 / 5) + 32);
+        console.log("Coversion to F completed.")
+        document.getElementById("tempLabel").innerHTML = "Temperature" + "&#xb0;" + jsonMessage.mode;
+        maxTempRange = 100;
+      }
+      setGauge('.dial1', gaugeTemperature, gaugeColour, maxTempRange);
+      console.log('%c Gauge temperature is :', 'color: blue', gaugeTemperature);
+      var gaugeHumidity = (jsonMessage.humidity);
+      gaugeColour = "blue";
+      if (gaugeHumidity < redLowHumidity) {
+        gaugeColour = "red";
+      } else if (gaugeHumidity < yellowLowHumidity) {
+        gaugeColour = "yellow";
+      } else if (gaugeHumidity < greenHighHumidity) {
+        gaugeColour = "lime";
+      } else if (gaugeHumidity < yellowHighHumidity) {
+        gaugeColour = "yellow";
+      } else {
+        gaugeColour = "red";
+      }
+      setGauge('.dial2', gaugeHumidity, gaugeColour, maxHumidityRange);
+      console.log("%c Gauge Humidity is :", 'color: orange', gaugeHumidity);
+      document.getElementById("pageStatus").style.visibility = "hidden";
+    }
+
+    function formatRequest(requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": "request",
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      queryWebSocket(jsonRequest);
+    }
+
+    function refresh() {
+      formatRequest("getEnvironmentals");
+    }
+    window.addEventListener("load", init, false);
+  </script>
+
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a hidden id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <div>
+      <p id="pageStatus">No Current Status</p>
+    </div>
+    <!-- Buttons ================================================== -->
+    <div align="center">
+      <input type="knob" value="0" class="dial1" data-width="45%" id="temperature">
+      <h2 id="tempLabel">Temperature</h2><br>
+      <input type="knob" value="0" class="dial2" data-width="45%" id="humidity">
+      <h2>Humidity %</h2>
+    </div>
+  </div>
+</body>
+
+</html>

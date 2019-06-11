@@ -1,0 +1,37 @@
+<html>
+<head>
+	<style>
+	body {
+		background: #333;
+	}
+	/*Centering the gauge*/
+	canvas {
+		display: block;
+		float: left;
+		margin: 10px auto;
+	}
+	</style>
+	<script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script src="../src/jquery.gauge.js"></script>
+</head>
+<body>
+<canvas id="gauge1" width="300" height="300"></canvas>
+<canvas id="gauge2" width="300" height="300"></canvas>
+<canvas id="gauge3" width="300" height="300"></canvas>
+<canvas id="gauge4" width="300" height="300"></canvas>
+<canvas id="gauge5" width="300" height="300"></canvas>
+<canvas id="gauge6" width="200" height="200"></canvas>
+<canvas id="gauge7" width="200" height="150"></canvas>
+<script>
+$(document).ready(function (){
+	$("#gauge1").gauge(0, { type: "halfcircle"});
+	$("#gauge2").gauge(1, { unit: " Volt", font: "40px verdana", type: "halfcircle"});
+	$("#gauge3").gauge(25, { type: "halfcircle"});
+	$("#gauge4").gauge(50, { unit: " A",type: "halfcircle"});
+	$("#gauge5").gauge(75, { unit: " A",type: "halfcircle"});
+	$("#gauge6").gauge(99, { unit: " A",type: "halfcircle"});
+	$("#gauge7").gauge(100, { unit: " A",type: "halfcircle", color: "#DDD"});
+});
+</script>
+</body>
+</html>

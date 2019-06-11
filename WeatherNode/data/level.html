@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: LEVEL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+  <!-- Load gauge scripts -->
+  <script src="gauge/jquery.knob.js"></script>
+
+  <script>
+    const gaugeYellow = 25;
+    const gaugeGreen = 75;
+    var gaugeValue = 0;
+    var thisInput = "";
+
+     $(function() {
+        $(".dial").knob({
+          'min':0,
+          'max':100,
+          'readOnly': true,
+          'angleArc':270,
+          'angleOffset':225,
+          'inputColor':'inherit',
+          'fgColor':'red',
+          'dynamicDraw': true
+        });
+    });
+
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+
+    function setGauge(value){
+      console.log("Value is: ",value);
+      var gaugeColour = 'red';
+      if(value > gaugeGreen){
+        gaugeColour = 'lime';
+        console.log("Green comparison matched, value is: ", value, " gaugeGreen is: ", gaugeGreen);
+      } else if (value > gaugeYellow){
+        gaugeColour = 'yellow';
+      }
+      $('.dial').val(value).trigger('change');
+      console.log("gaugeColour is:", gaugeColour);
+      $('.dial').trigger('configure', {'fgColor':gaugeColour});
+    }
+  </script>
+
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a hidden id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="options.html" style="text-align: right">OPTIONS</a></li>
+          <li><a href="brightness.html" style="text-align: right">BRIGHTNESS</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <div>
+      <p id="pageStatus" hidden=true>Sorry. Page not found!</p>
+    </div>
+    <br>
+    <!-- Buttons ================================================== -->
+    <div id="container" align="center">
+      <input type="knob" value="0" class="dial" id="level">
+      <!-- <input type="knob" class="dial" id="level"> -->
+      <!-- <label for="level">%</label> -->
+    </div>
+    <div class="container">
+      <br />
+      <p id="p1" class="bs-component">
+        <button id="b1" type="button" class="btn btn-default btn-lg btn-block" onclick="window.location.href = 'home.html';">HOME</button>
+      </p>
+    </div>
+  </div>
+</body>
+
+</html>

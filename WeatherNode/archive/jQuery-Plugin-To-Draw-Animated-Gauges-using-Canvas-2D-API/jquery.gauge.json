@@ -1,0 +1,28 @@
+{
+  "name": "gauge",
+  "version": "0.0.1",
+  "title":  "jQuery Gauge",
+  "description": "A simple gauge to show values",
+  "author": {
+    "name": "Patrik Falk",
+    "url": "https://github.com/swehacker"
+  },
+  "maintainers": [
+    {
+      "name": "Patrik Falk",
+    "url": "https://github.com/swehacker"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://raw.github.com/swehacker/jquery-gauge/master/MIT-LICENSE.txt"
+    }
+  ],
+  "dependencies": {
+    "jquery": ">=1.2"
+  },
+  "bugs": "https://github.com/swehacker/jquery-gauge/issues",
+  "homepage": "https://github.com/swehacker/jquery-gauge",
+  "docs": "https://github.com/swehacker/jquery-gauge#readme"
+}

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: Options</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+
+  <script>
+    var thisInput = "";
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+  </script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // var wsUri = 'ws://192.168.1.116:81/';
+    // var wsUri = 'ws://localhost:80/';
+    var output;
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+    var jsonMessage = "";
+
+    function init() {
+      console.log("Initiating settings page Functions");
+      document.getElementById("pageStatus").innerHTML = "Requesting Button Configuration."
+      document.getElementById("pageStatus").style.color = "yellow";
+      openWebsocket();
+      formatRequest("configButtons");
+      formatRequest("configTemperature");
+    }
+    //**************************************************************************
+    // Open Websockets
+    // As Websocekts are asynchronous, when first opening messages may be sent
+    // to a que to be processed once the readyState is = 1 (opened)
+    // this will send all queued messages once the socket is opened.
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        console.log("request sent to websocket");
+      }
+      // how do i close teh websocet??
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+
+    function onMessage(evt) {
+      // change to case / swtich statement later
+      var messageRecieved = evt.data;
+      var indexSSID, indexRSSI, indexTYPE, indexEND;
+      // var jsonMessage = JSON.parse(messageRecieved);
+      jsonMessage = JSON.parse(messageRecieved);
+      console.log("Message Recieved is: " + messageRecieved);
+
+      if (jsonMessage.echo == 'configButtons') {
+        console.log("Config Button Data Info recieved");
+        processButtonConfig(jsonMessage);
+      } else if (jsonMessage.echo == "configTemperature") {
+        var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept);
+        if (jsonMessage.mode == "F") {
+          displayTemperature = (displayTemperature * (9 / 5) + 32);
+        }
+        document.getElementById("showTemp").innerHTML = displayTemperature + "&#xb0;" + jsonMessage.mode;
+        document.getElementById("showTemp").style.display = "block";
+      } else if (jsonMessage.echo == "saveButtons") {
+        document.getElementById("pageStatus").innerHTML = "Settings Saved."
+        document.getElementById("pageStatus").style.color = "limegreen";
+        document.getElementById("pageStatus").style.visibility = "visible";
+        websocket.close();
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+
+    function formatRequest(requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": "request",
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      queryWebSocket(jsonRequest);
+    }
+
+    function saveSettingsWebSocket() {
+      // {"type":"saveButtons","buttonNames":["b1","b2","b3","light"],"buttonMode":[0,0,0,1],"show":[1,1,0,1],"onTime":[500,500,500,300000],"buttonPWM":[255,1024]}
+      var saveData = {};
+      saveData.type = "saveButtons";
+      saveData.buttonMode = [];
+      saveData.inputMode = []; // V2 programmable modes for inputs.
+      saveData.buttonNames = [];
+      saveData.show = [];
+      saveData.onTime = [];
+
+      for (var i = 0; i < 4; i++) {
+        if ((document.getElementById("b" + (i + 1) + "ModeDoor").checked) == true) {
+          saveData.buttonMode[i] = 0;
+          saveData.inputMode[i] = 0;
+        } else {
+          saveData.buttonMode[i] = 1;
+          saveData.inputMode[i] = 1;
+        }
+        saveData.buttonNames[i] = document.getElementById("b" + (i + 1) + "Name").value;
+        if ((document.getElementById("b" + (i + 1) + "ShowTrue").checked) == true) {
+          saveData.show[i] = 1;
+        } else {
+          saveData.show[i] = 0;
+        }
+        saveData.onTime[i] = Number(document.getElementById("b" + (i + 1) + "Time").value);
+      }
+      var nameerror = 1;
+      var timeerror = 1;
+      for (var i = 0; i < 4; i++) {
+        if (saveData.buttonNames[i] == "") {
+          nameerror = 0;
+        }
+        if (saveData.onTime[i] == "") {
+          timeerror = 0;
+        }
+      }
+      if ((nameerror == 0) || (timeerror == 0)) {
+        console.log("Invalid Option Data Values");
+        document.getElementById("pageStatus").innerHTML = "Invalid or Missing Option Values.  Please retry."
+        document.getElementById("pageStatus").style.color = "orange";
+        document.getElementById("pageStatus").style.visibility = "visible";
+      } else {
+
+        var jsonSaveData = JSON.stringify(saveData);
+        console.log("PRINTING saveData");
+        console.log(saveData);
+        queryWebSocket(jsonSaveData);
+        document.getElementById("buttonSubmit").disabled = true;
+        document.getElementById("buttonSubmit").style.visibility = "hidden";
+        document.getElementById("buttonCancel").innerHTML = "Home";
+      }
+    };
+
+    function processButtonConfig(jsonData) {
+      document.getElementById("pageStatus").style.visibility = "hidden"
+      console.log(jsonData.echo, " request answered.  Processing Button Configuration now.");
+      for (i = 0; i < 4; i++) {
+        var idname = "b" + (i + 1);
+        // document.getElementById(idname + "Name").value = jsonData.buttons[i].name;
+        document.getElementById(idname + "Name").value = jsonData.buttonNames[i];
+        if ((jsonData.buttonMode[i]) == 0) {
+          document.getElementById(idname + "ModeDoor").checked = true;
+        } else {
+          document.getElementById(idname + "ModeLight").checked = true;
+        }
+        if ((jsonData.show[i]) == 1) {
+          document.getElementById(idname + "ShowTrue").checked = true;
+        } else {
+          document.getElementById(idname + "ShowFalse").checked = true;
+        }
+        document.getElementById(idname + "Time").value = jsonData.onTime[i];
+      }
+      document.getElementById("buttonSubmit").disabled = false;
+    }
+
+    window.addEventListener("load", init, false);
+  </script>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a hidden id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="options.html" style="text-align: right">OPTIONS</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <!-- Forms ================================================== -->
+    <div class="bs-docs-section">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="well bs-component">
+            <form class="form-horizontal">
+              <fieldset>
+                <!-- <legend>Button Options</legend> -->
+                <div class="form-group">
+                  <div class="row">
+                    <div class="col-lg-4">
+                      <h1 id="Button_Options">Button Options</h1>
+                      <p id="pageStatus">No Current Status</p>
+                      <div class="bs-component">
+                        <ul class="nav nav-tabs" style="margin-bottom: 15px;">
+                          <li class="active"><a href="#button1" data-toggle="tab">BTN 1</a></li>
+                          <li> <a href="#button2" data-toggle="tab">BTN 2</a></li>
+                          <li> <a href="#button3" data-toggle="tab">BTN 3</a></li>
+                          <li> <a href="#button4" data-toggle="tab">BTN 4</a></li>
+                        </ul>
+                        <div id="myTabContent" class="tab-content">
+                          <div class="tab-pane fade active in" id="button1">
+                            <div class="col-lg-10">
+                              <label for="inputNameB1" class="col-lg-2 control-label">Name:</label>
+                              <input type="text" class="form-control" id="b1Name" placeholder="<UNDEF>">
+                              <label class="col-lg-2 control-label">Mode</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb1" id="b1ModeDoor" value="option1">
+                                  Door
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb1" id="b1ModeLight" value="option2">
+                                  Light
+                                </label>
+                              </div>
+                              <label class="col-lg-2 control-label">Show</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb1" id="b1ShowTrue" value="option1">
+                                  True
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb1" id="b1ShowFalse" value="option2">
+                                  False
+                                </label>
+                              </div>
+                              <label for="inputTimeB1" class="col-lg-2 control-label">On Time (ms):</label>
+                              <input type="number" class="form-control" id="b1Time" placeholder="<UNDEF>" min="0">
+                            </div>
+                          </div>
+                          <div class="tab-pane fade" id="button2">
+                            <div class="col-lg-10">
+                              <label for="inputNameB2" class="col-lg-2 control-label">Name:</label>
+                              <input type="text" class="form-control" id="b2Name" placeholder="<UNDEF>">
+                              <label class="col-lg-2 control-label">Mode</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb2" id="b2ModeDoor" value="option1">
+                                  Door
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb2" id="b2ModeLight" value="option2">
+                                  Light
+                                </label>
+                              </div>
+                              <label class="col-lg-2 control-label">Show</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb2" id="b2ShowTrue" value="option1">
+                                  True
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb2" id="b2ShowFalse" value="option2">
+                                  False
+                                </label>
+                              </div>
+                              <label for="inputTimeB2" class="col-lg-2 control-label">On Time (ms):</label>
+                              <input type="number" class="form-control" id="b2Time" placeholder="<UNDEF>" min="0">
+                            </div>
+                          </div>
+                          <div class="tab-pane fade" id="button3">
+                            <div class="col-lg-10">
+                              <label for="inputNameB3" class="col-lg-2 control-label">Name:</label>
+                              <input type="text" class="form-control" id="b3Name" placeholder="<UNDEF>">
+
+                              <label class="col-lg-2 control-label">Mode</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb3" id="b3ModeDoor" value="option1">
+                                  <!-- get checked button from server when loading websocket -->
+                                  Door
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb3" id="b3ModeLight" value="option2">
+                                  Light
+                                </label>
+                              </div>
+                              <label class="col-lg-2 control-label">Show</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb3" id="b3ShowTrue" value="option1">
+                                  True
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb3" id="b3ShowFalse" value="option2">
+                                  False
+                                </label>
+                              </div>
+                              <label for="inputTimeB3" class="col-lg-2 control-label">On Time (ms):</label>
+                              <input type="number" class="form-control" id="b3Time" placeholder="<UNDEF>" min="0">
+                            </div>
+                          </div>
+                          <div class="tab-pane fade" id="button4">
+                            <div class="col-lg-10">
+                              <label for="inputNameB4" class="col-lg-2 control-label">Name:</label>
+                              <input type="text" class="form-control" id="b4Name" placeholder="<UNDEF>">
+
+                              <label class="col-lg-2 control-label">Mode</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb4" id="b4ModeDoor" value="option1">
+                                  <!-- get checked button from server when loading websocket -->
+                                  Door
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsModeb4" id="b4ModeLight" value="option2">
+                                  Light
+                                </label>
+                              </div>
+                              <label class="col-lg-2 control-label">Show</label>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb4" id="b4ShowTrue" value="option1">
+                                  True
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="optionsShowb4" id="b4ShowFalse" value="option2">
+                                  False
+                                </label>
+                              </div>
+                              <label for="inputTimeB4" class="col-lg-2 control-label">On Time (ms):</label>
+                              <input type="number" class="form-control" id="b4Time" placeholder="<UNDEF>" min="0">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+          </div>
+          <div class="form-group">
+            <div class="col-lg-10 col-lg-offset-2">
+              <a href="home.html" id="buttonCancel" class="btn btn-default">Cancel</a>
+              <button type="button" id="buttonSubmit" style="float: right" class="btn btn-default" disabled onclick="saveSettingsWebSocket();">Submit</button>
+            </div>
+          </div>
+          </fieldset>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  <!-- <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> -->
+  <!-- <script src="bootstrap/bootstrap.min.js"></script> -->
+</body>
+
+</html>
