@@ -1,0 +1,6 @@
+{
+	"echo": "listSSIDs",
+	"SSIDName": ["Guest", "Ludzinc"],
+	"SSIDRSSI": [-66, -65],
+	"SSIDType": ["NONE", "CCMP (WPA)"]
+}

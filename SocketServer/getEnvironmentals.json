@@ -1,0 +1,8 @@
+{
+	"echo": "getEnvironmentals",
+	"temperature": 38,
+	"humidity": 91,
+    "mode": "C",
+	"slope": 1,
+	"intercept": -5
+}

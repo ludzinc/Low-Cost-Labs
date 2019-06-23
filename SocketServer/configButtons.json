@@ -1,0 +1,7 @@
+{
+	"echo": "configButtons",
+	"buttonNames": ["DOOR 1", "DOOR 2", "DOOR 3", "Light"],
+	"buttonMode": [0, 0, 0, 1],
+	"show": [1, 1, 1, 1],
+	"onTime": [500, 500, 500, 10000]
+}
