@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>404 NOT FOUND</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="bootstrap/bootstrap.min.css" media="screen">
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+  <script>
+    var thisInput = "";
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <p id="pageStatus">Sorry. Page not found!</p>
+    <div class="container">
+      <br />
+      <p id="p1" class="bs-component">
+        <button id="b1" type="button" class="btn btn-secondary btn-lg btn-block" onclick="window.location.href = 'home.html';">HOME</button>
+      </p>
+    </div>
+  </div>
+</body>
+
+</html>

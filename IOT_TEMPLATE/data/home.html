@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>IoT-TEMPLATE (http://ludzinc.blogspot.com)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="bootstrap/bootstrap.min.css" media="screen">
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <script src="bootstrap/bootstrap.min.js"></script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    // use below when hosted on ESP8266
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // use below for connecting to ESP server via IP address (when testing code on PC)
+    // var wsUri = 'ws://192.168.1.120:81/';
+    // use below for connecting to Nodejs server (when testing code on PC)
+    // var wsUri = 'ws://localhost:80/';
+    var output;
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+    //**************************************************************************
+    // Init - called when Event Lsitener loads
+    //**************************************************************************
+    function init() {
+      console.log("Initiating Home page");
+      openWebsocket();
+      formatRequest("queryGPIO", "2");
+    }
+    //**************************************************************************
+    // open Websockets - as the name suggests
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        // check if websocke is open here
+        console.log("request sent to websocket");
+      }
+      // how do i close teh websocet??
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+    //**************************************************************************
+    // Runs when websocket is recieved or is sent
+    //**************************************************************************
+    function onMessage(evt) {
+      var messageRecieved = evt.data;
+      var jsonMessage = JSON.parse(messageRecieved);
+      console.log("Message Recieved is: " + messageRecieved);
+      document.getElementById("pageStatus").style.visibility = "hidden";
+      if (jsonMessage.echo == "Setting GPIO") {
+        console.log("Verifying GPIO Status: ", jsonMessage.status);
+        if (jsonMessage.status.includes("on")) {
+          console.log("Set GPIO status ON");
+          document.getElementById("status").innerHTML = "GPIO is: " + "ON";
+          document.getElementById("b1").focus();
+          console.log("Setting Focus B1");
+        } else {
+          console.log("Set GPIO status OFF");
+          document.getElementById("status").innerHTML = "GPIO is: " + "OFF";
+          document.getElementById("b2").focus();
+        }
+      } else if (jsonMessage.echo == "Status GPIO") {
+        console.log("Recieved GPIO Status");
+        document.getElementById("status").innerHTML = "GPIO is: " + jsonMessage.status;
+        if (jsonMessage.status == "ON") {
+          document.getElementById("b1").focus();
+          console.log("Setting Focus B1");
+        } else {
+          document.getElementById("b2").focus();
+          console.log("Setting Focus B2");
+        }
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+    // This listener is required to action websocket requests.
+    window.addEventListener("load", init, false);
+  </script>
+  <script>
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+    //**************************************************************************
+    // setIO
+    // Sets required state of chosen IO by using an AJAX request
+    //**************************************************************************
+    function setIO(io, state) {
+      console.log("IO ", io, " requested with state: ", state, ".");
+        request = new XMLHttpRequest();
+        requestData = "GPIO_" + io + "_" + state;
+        request.open("GET", requestData, true);
+        request.send(null);
+        console.log("AJAX request sent");
+        document.getElementById("status").innerHTML = "GPIO is: " + state;
+    }
+    //**************************************************************************
+    // formatRequest
+    // Formats json Message to be sent with parsed in requst (type) and
+    // requestData
+    //**************************************************************************
+    function formatRequest(request, requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": request,
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      queryWebSocket(jsonRequest);
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container" style="text-align:center;">
+    <h1> Low Cost Labs </h1>
+    <p> IoT Template </p>
+    <p id="pageStatus">No Current Status</p>
+    <!-- Buttons ================================================== -->
+    <div class="container">
+      <br />
+      <p id="p1" class="bs-component">
+        <button id="b1" type="button" class="btn btn-primary btn-lg btn-block" onclick="setIO(2, 'ON');">ON</button>
+        <button id="b2" type="button" class="btn btn-danger  btn-lg btn-block" onclick="setIO(2, 'OFF');">OFF</button>
+      </p>
+      <h3 id="status">GPIO is Undefined</h3>
+    </div>
+  </div>
+</body>
+
+</html>
