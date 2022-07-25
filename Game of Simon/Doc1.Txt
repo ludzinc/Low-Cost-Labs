@@ -1,0 +1,6 @@
+Press START to play
+Press BLUE and START to play from MAX LEVEL
+Press RED and START to RESET BEST SCORE
+Press YELLOW and START to REPLAY LAST GAME WITH SAME SEED
+Press GREEN and START to PLAY RANDOM TONES (strt to stop)
+

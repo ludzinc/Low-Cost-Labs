@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : PCB Document [ESP8266 Xmas Lights.PcbDoc]
+   Generated File[ESP8266 Xmas Lights.TXT]
+   Generated File[ESP8266 Xmas Lights.LDP]
+   Generated File[ESP8266 Xmas Lights.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 16:30:33 On 1/11/2020
