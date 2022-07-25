@@ -1,0 +1,21 @@
+Output: Gerber Files
+Type  : Gerber
+From  : Variant [[No Variations]] of PCB Document [907 Controller.PcbDoc]
+   Generated File[907 Controller.GTL]
+   Generated File[907 Controller.GBL]
+   Generated File[907 Controller.GTO]
+   Generated File[907 Controller.GTP]
+   Generated File[907 Controller.GTS]
+   Generated File[907 Controller.GBS]
+   Generated File[907 Controller.GBP]
+   Generated File[907 Controller.GBO]
+   Generated File[907 Controller.GM1]
+   Generated File[907 Controller.RUL]
+   Generated File[907 Controller.EXTREP]
+   Generated File[907 Controller.REP]
+
+
+Files Generated   : 12
+Documents Printed : 0
+
+Finished Output Generation At 20:25:45 On 27/08/2020
