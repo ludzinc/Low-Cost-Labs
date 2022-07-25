@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: Network</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+
+  <script>
+    var thisInput = "";
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+  </script>
+  <script language="javascript" type="text/javascript">
+    //**************************************************************************
+    // setup Websockets
+    //**************************************************************************
+    // use below when hosted on ESP8266
+    var wsUri = 'ws://' + location.hostname + ':81/';
+    // use below for connecting to ESP server via IP address (when testing code on PC)
+    // var wsUri = 'ws://192.168.1.111:81/';
+    // use below for connecting to Nodejs server (when testing code on PC)
+    // var wsUri = 'ws://localhost:80/';
+    var echo = "";
+    var requestMsg = []; // array of messages to be sent out the websocekt.
+
+    function init() {
+      console.log("Initiating settings page Functions");
+      document.getElementById("pageStatus").innerHTML = "Requesting MQTT settings."
+      document.getElementById("pageStatus").style.color = "yellow";
+      openWebsocket();
+      formatRequest("configTemperature");
+      formatRequest("MQTTSettings");
+    }
+    //**************************************************************************
+    // Open Websockets
+    // As Websocekts are asynchronous, when first opening messages may be sent
+    // to a que to be processed once the readyState is = 1 (opened)
+    // this will send all queued messages once the socket is opened.
+    //**************************************************************************
+    function openWebsocket() {
+      var message = "";
+      websocket = new WebSocket(wsUri);
+      websocket.onopen = function() {
+        console.log("Websocket opened.");
+        while (requestMsg.length > 0) {
+          message = requestMsg.pop();
+          console.log("Popping message ", message, " from queue.");
+          websocket.send(message);
+        }
+        console.log("Message queue now empty.");
+      }
+    }
+    //**************************************************************************
+    // Query Websockets
+    // Take action as required on webSocket
+    // Either ques or sends messages based on readyState of the socket
+    //**************************************************************************
+    function queryWebSocket(request) {
+      if (websocket.readyState == 3) {
+        console.log("Websocket not open, opening.")
+        openWebsocket();
+      }
+      console.log("Requesting: ", request);
+      if (websocket.readyState !== 1) {
+        requestMsg.push(request);
+        console.log("request pushed to array");
+      } else {
+        websocket.send(request);
+        // check if websocke is open here
+        console.log("request sent to websocket");
+      }
+      // how do i close teh websocet??
+      websocket.onclose = function(evt) {
+        console.log("Websocket disconnected");
+      };
+      websocket.onmessage = function(evt) {
+        console.log("Websocket message recieved.")
+        onMessage(evt);
+      };
+      websocket.onerror = function(evt) {
+        console.log("Websocket Error! " + evt.data);
+        document.getElementById("pageStatus").style.color = "red";
+        document.getElementById("pageStatus").innerHTML = "Failed to Connect.  Reload to Retry.";
+      };
+    }
+
+    function onMessage(evt) {
+      var messageRecieved = evt.data;
+      console.log("Message Recieved is: " + messageRecieved);
+      var indexSSID, indexRSSI, indexTYPE, indexEND;
+      var jsonMessage = JSON.parse(messageRecieved);
+
+      console.log("jsonMessage.echo = " + jsonMessage.echo);
+
+      if (jsonMessage.echo == 'MQTTSettings') {
+        processMQTT(jsonMessage);
+      } else if (jsonMessage.echo == "configTemperature") {
+        var displayTemperature = ((jsonMessage.data * jsonMessage.slope) + jsonMessage.intercept);
+        if (jsonMessage.mode == "F") {
+          displayTemperature = (displayTemperature * (9 / 5) + 32);
+
+        }
+        document.getElementById("showTemp").innerHTML = Math.round(displayTemperature) + "&#xb0;" + jsonMessage.mode;
+        document.getElementById("showTemp").style.display = "block";
+      } else if (jsonMessage.echo == "saveMQTTdata") {
+        document.getElementById("pageStatus").innerHTML = "Settings Saved."
+        document.getElementById("pageStatus").style.color = "limegreen";
+        document.getElementById("pageStatus").style.visibility = "visible";
+        websocket.close();
+      } else {
+        console.log("ERROR: Unknown message recieved.")
+      }
+    }
+
+    function formatRequest(requestData) {
+      var jsonRequest = JSON.stringify({
+        "type": "request",
+        "data": requestData
+      });
+      console.log("Sending Request Data.");
+      console.log(jsonRequest);
+      // websocket.send(jsonSaveData);
+      queryWebSocket(jsonRequest);
+    }
+
+    function processMQTT(mqttList) {
+      console.log(mqttList.echo, " request answered.  Processing MQTT settings now.");
+      console.log("Current MQTT Server: ", mqttList.mqttServer);
+      document.getElementById("inputServer").value = mqttList.mqttServer;
+      console.log("Current MQTT Subscription:", mqttList.mqttSubscription);
+      document.getElementById("inputSubscription").value = mqttList.mqttSubscription;
+      console.log("Current MQTT Publish:", mqttList.mqttPublish)
+      document.getElementById("inputPublish").value = mqttList.mqttPublish;
+      document.getElementById("pageStatus").style.visibility = "hidden"
+    }
+
+    function validateInput() {
+      var inputTextServer = document.getElementById("inputServer");
+      var inputTextSubscription = document.getElementById("inputSubscription");
+      var inputTextPublish = document.getElementById("inputPublish");
+      if (inputTextServer.value == "" || inputTextSubscription.value == "" || inputTextPublish.value == "") {
+        document.getElementById("buttonSubmit").disabled = true;
+      } else
+        document.getElementById("buttonSubmit").disabled = false;
+    }
+
+    function saveSettingsWebSocket() {
+      var jsonSaveData = JSON.stringify({
+        "type": "saveMQTTdata",
+        "newMqttServer": document.getElementById("inputServer").value,
+        "newMqttSubscription": document.getElementById("inputSubscription").value,
+        "newMqttPublish": document.getElementById("inputPublish").value
+      });
+      console.log("Sending Save Data.");
+      console.log(jsonSaveData);
+      queryWebSocket(jsonSaveData);
+      document.getElementById("buttonSubmit").disabled = true;
+      document.getElementById("buttonSubmit").style.visibility = "hidden";
+      document.getElementById("buttonCancel").innerHTML = "Home";
+    };
+
+    window.addEventListener("load", init, false);
+  </script>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <a hidden id="showTemp" class="navbar-brand">TEMP&#xb0;C</a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="mqtt.html" style="text-align: right">MQTT</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+          <li><a href="reset.html" style="text-align: right">REBOOT</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <!-- Tables ================================================== -->
+    <div class="bs-docs-section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="page-header">
+            <h1 id="tables">MQTT Settings</h1>
+            <p id="pageStatus">No Current Status</p>
+          </div>
+        </div>
+      </div>
+      <!-- Forms
+        ================================================== -->
+      <div class="bs-docs-section">
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="well bs-component">
+              <form class="form-horizontal">
+                <fieldset>
+                  <div class="form-group">
+                    <label for="inputServer" class="col-lg-2 control-label">SERVER</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="inputServer" placeholder="Server" onkeyup="validateInput()">
+                    </div>
+
+                    <label for="inputSubscription" class="col-lg-2 control-label">SUBSCRIPTION TOPIC</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="inputSubscription" placeholder="Subscription" onkeyup="validateInput()">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputPublish" class="col-lg-2 control-label">PUBLISH TOPIC</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="inputPublish" placeholder="Publish" onkeyup="validateInput()">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-lg-10 col-lg-offset-2">
+                      <a href="home.html" id="buttonCancel" class="btn btn-default">Cancel</a>
+                      <button type="button" id="buttonSubmit" style="float: right" class="btn btn-default" disabled onclick="saveSettingsWebSocket();">Submit</button>
+                    </div>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> -->
+  <!-- <script src="bootstrap/bootstrap.min.js"></script> -->
+</body>
+
+</html>

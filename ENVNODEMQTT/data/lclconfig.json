@@ -1,0 +1,14 @@
+{
+  "Version"	:"0",
+  "SSID"	:"Ludzinc",
+  "Password"	:"Renegade!",
+  "hostName"	:"wnode01",
+  "temperatureChoice": "C",
+  "APName"	:"WNODE_123456",
+  "APPass"	:"welcome1!",
+  "mqttServer" : "raspberrypi.local",
+  "mqttSubscription" : "subscriptionDefault",
+  "mqttPublish" : "Home/Environmentals",
+  "tempSlope"	:1,
+  "tempIntercept":-5
+}

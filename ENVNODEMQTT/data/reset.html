@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>LCL: 404</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- LOCAL FILE for Bootswatch Slate Theme -->
+  <link rel="stylesheet" href="theme/homebootstrap.css" media="screen">
+  <!-- load icons - stripped down FontAwesome (see: https://blog.webjeda.com/optimize-fontawesome/ -->
+  <link rel="stylesheet" href="icomoon/icomoon.css">
+  <!-- load jQuery -->
+  <!--need to fall back to local files if the online files arent available: needed esp as access point -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery/jquery-3.4.1.min.js">\x3C/script>')
+  </script>
+  <!-- load bootstrap javascript files -->
+  <script src="bootstrap/bootstrap.min.js"></script>
+
+  <script>
+    var timer = 30;
+    var thisInput = "";
+    $(document).ready(function() {
+      console.log('Document ready.');
+    });
+
+    function reboot(){
+      console.log("Tell the ESP8266 to reboot, then reconnect after 30 seconds.");
+      interval = setInterval(countdown, 1000);
+      var tempString = "Reloading home page in ";
+      tempString = tempString.concat(timer);
+      tempString = tempString.concat(" seconds.");
+      document.getElementById("pageStatus").innerHTML = tempString;
+      // document.getElementById("reboot").style.visibility = "hidden";
+      document.getElementById("reboot").disabled = "false";
+      console.log("Loading warning message.");
+      document.getElementById("alertmessage").style.visibility = "visible";
+      document.getElementById("alertmessage").innerHTML = "Page will fail to load if you have changed your hostname or wifi network."
+      document.getElementById("alertmessage").style.color = "Yellow";
+
+      console.log("Preparing to send reboot command.")
+      request = new XMLHttpRequest();
+      requestData = "reboot.html";
+      console.log("Sending " + requestData);
+      request.open("GET", requestData, true);
+      request.send(null);
+      console.log("reboot request sent");
+    }
+    function countdown(){
+      timer --;
+      console.log("Counting downn.  Timer is: ", timer)
+      var tempString = "Reloading home page in ";
+      tempString = tempString.concat(timer);
+      tempString = tempString.concat(" seconds.");
+      document.getElementById("pageStatus").innerHTML = tempString;
+      if(timer < 1){
+        clearInterval(interval);
+        callHome();
+      }
+    }
+
+    function callHome(){
+      console.log("Attempting to load home page after reboot.");
+      window.location.href = "home.html";
+    }
+  </script>
+
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="home.html" class="navbar-brand"><span class="fa icon-home"></span></a>
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+      <div class="navbar-collapse collapse" id="navbar-main">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="home.html" style="text-align: right">HOME</a></li>
+          <li><a href="network.html" style="text-align: right">NETWORK</a></li>
+          <li><a href="mqtt.html" style="text-align: right">MQTT</a></li>
+          <li><a href="calibration.html" style="text-align: right">CALIBRATION</a></li>
+          <li><a href="reset.html" style="text-align: right">REBOOT</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <!-- END NAVBAR -->
+    <!-- Buttons ================================================== -->
+    <div class="container">
+      <br />
+      <p id="pageStatus">Pressing below will reboot your device.</p>
+      <br />
+      <p id="p1" class="bs-component">
+        <button id="reboot" type="button" class="btn btn-default btn-lg btn-block" onclick="reboot();">REBOOT</button>
+      </p>
+      <!-- <p id="countdown" hidden>""</p> -->
+      <p id="alertmessage"></p>
+    </div>
+  </div>
+</body>
+
+</html>
